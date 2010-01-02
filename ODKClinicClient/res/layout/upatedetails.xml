@@ -1,0 +1,22 @@
+	<LinearLayout 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+   	android:orientation="vertical">
+		<TextView 
+		android:id="@+id/updatename"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:textSize="8pt"
+	  	android:textStyle="bold"
+	  	android:text="UPDATE_NAME"
+	    />
+		<TextView 
+		android:id="@+id/updatedetails"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:textSize="8pt"
+	  	android:text="UPDATE DETAILS"
+	  	android:paddingLeft="4pt"
+	    />
+	</LinearLayout>

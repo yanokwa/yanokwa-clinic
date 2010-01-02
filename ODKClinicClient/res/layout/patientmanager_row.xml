@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+  	<CheckedTextView
+  	   xmlns:android="http://schemas.android.com/apk/res/android"
+	   android:id="@+id/patientmanager_name"
+	   android:layout_width="fill_parent"
+	   android:layout_height="wrap_content"
+	   android:gravity="center_vertical"  
+	   android:textSize="8pt"
+	   android:text="TESTINFO"
+	   android:checkMark="?android:attr/listChoiceIndicatorMultiple" 
+	   android:paddingTop="10dip"
+       android:paddingBottom="10dip"
+       android:paddingLeft="15dip"
+       android:paddingRight="6dip"
+	   />

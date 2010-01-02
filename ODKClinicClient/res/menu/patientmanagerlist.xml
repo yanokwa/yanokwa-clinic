@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<item android:id="@+id/patientmanagerlist_select"
+        android:title="Select...">
+        
+        <menu>        
+            <item android:id="@+id/patientmanagerlist_all"
+                android:title="All"/>
+        
+            <item android:id="@+id/patientmanagerlist_woupdate"
+                android:title="Without Updates" />
+        
+            <item android:id="@+id/patientmanagerlist_none"
+                android:title="None" />
+        </menu>
+        
+        </item>
+        
+	<item android:id="@+id/patientmanagerlist_delete"
+        android:title="Delete Selected"/>
+    
+        
+   
+</menu>
+

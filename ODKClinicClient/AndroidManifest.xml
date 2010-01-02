@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      package="com.odkclinic.client"
+      android:versionCode="1"
+      android:versionName="1.0">
+    <application android:icon="@drawable/icon" android:label="@string/app_name"  
+    android:theme="@style/ODKClinicTheme">
+        <activity android:label="@string/app_name" android:name="MainPage">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    <activity android:name="EncounterOptions"></activity>
+<activity android:name="EncounterNote"></activity>
+<activity android:name="ConceptMeasurement"></activity>
+<activity android:name="ConceptHistory"></activity>
+<activity android:name="ObservationDetails"></activity>
+<activity android:name="PatientList"></activity>
+<activity android:name="PatientDetails"></activity>
+<activity android:name="PatientManagerList"></activity>
+<activity android:name="UpdateList"></activity>
+<activity android:name="UpdateDetails"></activity>
+</application>
+    <uses-sdk android:minSdkVersion="3" />
+	<uses-permission android:name="android.permission.INTERNET"/>
+</manifest> 

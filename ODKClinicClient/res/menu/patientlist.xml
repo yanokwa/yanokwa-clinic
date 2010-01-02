@@ -1,0 +1,12 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+	
+	<item android:id="@+id/patientlist_manage"
+        android:title="Manage"/>
+        
+	<item android:id="@+id/patientlist_update"
+        android:title="View Updates"/>
+        
+    <item android:id="@+id/patientlist_sync"
+        android:title="Sync"/>
+   
+</menu>
