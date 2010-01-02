@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+	<TextView
+		android:id="@+id/patientdetails_concept"
+		android:layout_gravity="center_vertical|center_horizontal"
+		android:layout_weight=".99"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:textSize="8pt"
+		android:textStyle="italic"
+		android:text="TESTINFO"
+		android:paddingTop="10dip"
+	    android:paddingBottom="10dip"
+	    android:paddingLeft="15dip"
+		
+	/>
+</LinearLayout>

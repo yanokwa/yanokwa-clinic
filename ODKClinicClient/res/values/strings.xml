@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="hello">Hello World, Start!</string>
+    <string name="app_name">ODKClinicClient</string>
+<string name="list_gender">Gender: </string>
+<string name="list_birthdate">Birthdate: </string>
+<string name="list_race">Race: </string>
+<string name="patientlist_title">Patients</string>
+<string name="list_cohortid">Cohort ID: </string>
+<string name="list_patientid">Patient ID: </string>
+
+<string name="list_height">Height:</string>
+<string name="encounteroptionstitle">Choose encounter type:</string>
+<string name="encounter_visited">mark visited</string>
+<string name="encounter_visitednote">mark visited with note</string>
+<string name="encounter_full">mark visited with full encounter</string>
+<string name="encounternotetitle">Note :</string>
+<string name="label_true">True</string>
+<string name="label_false">False</string>
+
+<string name="invalid_input">The value entered is invalid</string>
+<string name="conceptmeasuretitle">Enter new</string>
+<string name="list_weight">Weight:</string>
+<string name="list_weight_measure">Kg</string>
+<string name="list_height_measure">cm</string>
+<string name="concepthistory_empty">There are no observations yet for this concept</string>
+</resources>

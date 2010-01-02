@@ -1,0 +1,41 @@
+	<RelativeLayout 
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+   	android:orientation="vertical">
+		<TextView 
+		android:id="@+id/concepthistory_name"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:textSize="8pt"
+	  	android:textStyle="bold"
+	  	android:text="CONCEPT NAME"
+	  	android:layout_alignParentTop="true"
+	    />
+	    
+
+	<Button 
+	android:text="New " 
+	android:id="@+id/newmeasurementbutton" 
+	android:layout_width="fill_parent" 
+	android:layout_height="wrap_content"
+	android:layout_alignParentBottom="true"
+	/>
+	
+		<TextView 
+		android:id="@+id/concepthistory_empty"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	  	android:text="@string/concepthistory_empty"
+	  	android:layout_above="@id/newmeasurementbutton"
+	  	android:layout_below="@id/concepthistory_name"
+	  	android:visibility="gone"
+	    />
+	<WebView android:id="@+id/graphview"
+            android:layout_height="fill_parent"
+            android:layout_width="fill_parent"
+            android:layout_above="@id/newmeasurementbutton"
+			android:layout_below="@id/concepthistory_name"
+            />
+	
+</RelativeLayout>

@@ -1,0 +1,28 @@
+<LinearLayout 
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="fill_parent"
+android:layout_height="fill_parent"
+android:orientation="vertical">
+   	<TextView 
+   	android:text="@string/encounteroptionstitle" 
+   	android:id="@+id/encounteroptionstitle" 
+   	android:layout_width="fill_parent" 
+   	android:layout_height="wrap_content"
+   	android:textSize="8pt"
+	android:textStyle="bold"/>
+	
+	<Button android:text="@string/encounter_visited" 
+	android:id="@+id/encounter_visited" 
+	android:layout_width="fill_parent" 
+	android:layout_height="wrap_content"/>
+	
+	<Button android:text="@string/encounter_visitednote" 
+	android:id="@+id/encounter_visitednote" 
+	android:layout_width="fill_parent" 
+	android:layout_height="wrap_content"/>	
+	
+	<Button android:text="@string/encounter_full" 
+	android:id="@+id/encounter_full" 
+	android:layout_width="fill_parent" 
+	android:layout_height="wrap_content"/>
+</LinearLayout>

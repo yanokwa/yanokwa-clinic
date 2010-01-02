@@ -1,0 +1,62 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+ <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Flot Examples</title>
+    <link href="../css/main.css" rel="stylesheet" type="text/css"></link>
+    <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]-->
+    <script language="javascript" type="text/javascript" src="../jquery.js"></script>
+    <script language="javascript" type="text/javascript" src="../jquery.flot.js"></script>
+
+ </head>
+    <body>
+
+	
+    <div id="placeholder" style="width:300px;height:300px;"></div>
+	<div id="clickdata"></div>
+
+
+<script id="source" language="javascript" type="text/javascript">
+function load(){
+	setGraphSize();
+	window.mGraphHandler.loadGraph();
+}
+
+function setStyle(objId, style, value) {
+    document.getElementById(objId).style[style] = value;
+}
+
+function setGraphSize(){
+	setStyle("placeholder","height",window.mGraphHandler.getGraphHeight()+"px");
+	setStyle("placeholder","width",window.mGraphHandler.getGraphWidth()+"px");
+}
+
+function GotGraph(data,options,display) {
+	var plot = $.plot($("#placeholder"), data, options);
+	
+	     $("#placeholder").bind("plotclick", function (event, pos, item) {
+	            if (item) {
+	            		if(display == true){
+						//display details                    
+	                    var x = item.datapoint[0].toFixed(0),
+	                    var y = item.datapoint[1].toFixed(2);
+	                    var xtime = new Date(x/1);
+	 					$("#clickdata").text(y +" (recorded "+xtime.toLocaleString()+")"); 
+						}  
+						
+						//call the handler for more action
+	                	window.mGraphHandler.onClick(item.dataIndex);
+	                
+	            }
+	
+	        
+	    }); 
+	 //ok we are done
+	window.mGraphHandler.onGraphRendered()
+}
+
+load();
+</script>
+
+ </body>
+</html>

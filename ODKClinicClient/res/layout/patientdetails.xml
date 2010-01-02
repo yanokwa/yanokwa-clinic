@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <TextView
+        android:layout_width="wrap_content" 
+	    android:layout_height="wrap_content" 
+	    android:text="Patient Details"
+	    style="@style/TitleText"
+        />
+    <TextView
+		android:id="@+id/patientdetails_name"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="TEST"
+		android:layout_weight=".01"
+		/>
+    <TextView
+		android:id="@+id/patientdetails_gender"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="TEST"
+		android:layout_weight=".01"
+		/>	
+	<TextView
+		android:id="@+id/patientdetails_race"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="TEST"
+		android:layout_weight=".01"
+		/>
+	<!--<TextView
+		android:id="@+id/patientdetails_height"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="TEST"
+		android:layout_weight=".01"
+		/>-->
+	<TextView
+		android:id="@+id/patientdetails_birthdate"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:text="TEST"
+		android:layout_weight=".01"
+		/>
+	<TextView
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    style="@style/SectionTitleText"
+	    android:text="Specific Histories"
+	   />
+	    
+	
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    android:orientation="vertical"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:layout_weight=".99"
+	    >
+	    <ListView 
+	    	android:id="@+id/android:list"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:layout_weight="1"
+	 		android:drawSelectorOnTop="false"/>
+	  	<TextView android:id="@+id/android:empty"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:textStyle="bold"
+	        android:text="No Concepts Set!"
+	       	/>
+	</LinearLayout>
+
+</LinearLayout>

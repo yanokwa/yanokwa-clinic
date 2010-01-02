@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Text" parent="ODKClinicTheme">
+    </style>
+    <style name="LabelText" parent="@style/EmphasisText">
+        <item name="android:paddingRight">5pt</item>
+    </style>
+    <style name="TitleText">
+        <item name="android:textSize">10pt</item>
+		<item name="android:textStyle">bold</item>
+		<item name="android:layout_gravity">center_vertical|center_horizontal</item>
+		<item name="android:layout_marginBottom">5px</item>
+		<item name="android:textColor">#eee</item>
+    </style>
+    <style name="SectionTitleText" parent="@style/TitleText">
+        <item name="android:textSize">9pt</item>
+    </style>
+    <style name="EmphasisText" parent="@style/Text">
+        <item name="android:textSize">8pt</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="ODKClinicTheme">
+        <item name="android:textSize">8pt</item>
+    </style>
+</resources>
