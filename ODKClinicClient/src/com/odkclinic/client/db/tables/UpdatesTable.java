@@ -26,8 +26,8 @@ public enum UpdatesTable {
 	NAME("update_name", "VARCHAR(255)"),
 	DESC("update_description", "VARCHAR(255)"),
 	DATE("pdate_date", "DATETIME DEFAULT(CURRENT_TIMESTAMP)"),
-	ENCOUNTER_ID("updates_encounter_id", "integer"),
-	OBSERVATION_ID("updates_obs_id", "integer");
+	TYPE("update_type", "varchar(3)"),
+	TYPE_ID("update_type_id", "integer");
 	
 	public static String TABLE_NAME = "updates";
 	public static String TABLE_ACRONYM = "u"; //for queries

@@ -42,37 +42,34 @@ public class DbConstants {
     /**
      * Triggers
      */
-    public static final String PATIENT_TRIGGER = 
+    public static final String[] TRIGGERS = 
+    {
     	" CREATE TRIGGER insert_patient AFTER INSERT ON patient " +
     	" BEGIN " +
     	" INSERT INTO visited(visited_patient_id) VALUES(new.patient_id);" +
-    	" END; ";
-    
-    public static final String ENCOUNTER_TRIGGER = 
+    	" END; ",
+    	
     	" CREATE TRIGGER insert_encounter AFTER INSERT ON encounter WHEN new.isUpdate = 1" +
     	" BEGIN " +
-    	" INSERT INTO updates(updates_patient_id,update_name,updates_encounter_id) VALUES(new.encounter_patient_id, 'New Encounter', new.encounter_id); " +
-    	" END; ";
-    
-    public static final String DELETE_ENCOUNTER_TRIGGER = 
+    	" INSERT INTO updates(updates_patient_id,update_name,update_type, update_type_id) VALUES(new.encounter_patient_id, 'New Encounter', 'ENC', new.encounter_id); " +
+    	" END; ",
+    	
     	" CREATE TRIGGER delete_encounter AFTER DELETE ON encounter" +
     	" BEGIN " +
-    	" DELETE FROM updates WHERE updates_encounter_id = old.encounter_id; " +
-    	" END; ";
-    
-    public static final String DELETE_OBSERVATION_TRIGGER = 
+    	" DELETE FROM updates WHERE updates_encounter_id = old.encounter_id AND update_type = 'ENC'; " +
+    	" END; ",
+    	
     	" CREATE TRIGGER delete_observation AFTER DELETE ON observation" +
     	" BEGIN " +
-    	" DELETE FROM updates WHERE updates_obs_id = old.obs_id; " +
-    	" END; ";
-    
-    public static final String OBSERVATION_TRIGGER = 
+    	" DELETE FROM updates WHERE updates_obs_id = old.obs_id AND update_type = 'OBS'; " +
+    	" END; ", 
+    	
     	" CREATE TRIGGER insert_observation AFTER INSERT ON observation WHEN new.isUpdate = 1" +
     	" BEGIN " +
-    	" INSERT INTO updates(updates_patient_id,update_name,updates_obs_id) VALUES(new.observation_patient_id, 'New Note', new.obs_id); " +
-    	" END; ";
+    	" INSERT INTO updates(updates_patient_id,update_name, update_type, update_type_id) VALUES(new.observation_patient_id, 'New Note', 'OBS', new.obs_id); " +
+    	" END; "};
     
-    public static final String[] indexes = 
+    public static final String[] INDEXES = 
     {
     	"CREATE INDEX visited_q ON " + VisitedTable.TABLE_NAME + "(" + 
     									VisitedTable.PATIENT_ID.getName() + "," + 

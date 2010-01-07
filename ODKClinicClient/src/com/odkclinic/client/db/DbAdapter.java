@@ -17,12 +17,16 @@
 package com.odkclinic.client.db;
 
 import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.odkclinic.client.db.tables.CohortTable;
 import com.odkclinic.client.db.tables.EncounterTable;
@@ -33,10 +37,15 @@ import com.odkclinic.client.db.tables.ProgramTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
 import com.odkclinic.client.xforms.Encounter;
+import com.odkclinic.client.xforms.EncounterBundle;
 import com.odkclinic.client.xforms.Observation;
+import com.odkclinic.client.xforms.ObservationBundle;
 import com.odkclinic.client.xforms.Patient;
+import com.odkclinic.client.xforms.PatientBundle;
 import com.odkclinic.client.xforms.PatientProgram;
+import com.odkclinic.client.xforms.PatientProgramBundle;
 import com.odkclinic.client.xforms.Program;
+import com.odkclinic.client.xforms.ProgramBundle;
 
 /**
  * Main interface for subset OpenMrs database.
@@ -45,6 +54,7 @@ import com.odkclinic.client.xforms.Program;
  */
 public class DbAdapter {
     
+    private static final String LOG_TAG = DbAdapter.class.getName();
 	private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
     
@@ -150,9 +160,9 @@ public class DbAdapter {
      */
     public Cursor getUpdateDetails(long id) {
     	return mDb.query(UpdatesTable.TABLE_NAME, 
-    				     new String[] {UpdatesTable.NAME.getName(), UpdatesTable.DATE.getName()},
+    				     new String[] {UpdatesTable.NAME.getName(), UpdatesTable.DATE.getName(), 
+    									UpdatesTable.TYPE.getName(), UpdatesTable.TYPE_ID.getName()},
     				     UpdatesTable.ID.getName() +"=" +id, null, null, null, null);
-    	//return mDb.rawQuery(DbConstants.UPDATE_DETAILS, new String[] {id + ""});
     }
     
  
@@ -341,7 +351,7 @@ public class DbAdapter {
     	values.put(EncounterTable.PROVIDER_ID.getName(), e.getProviderId());
     	values.put(EncounterTable.DATE_CREATED.getName(), e.getDateCreated().toString()); //TODO may not work
     	values.put(EncounterTable.DATETIME.getName(), e.getDateEncountered().toString());
-    	//values.put(EncounterTable, e.getEncounterId()); //TODO need to fix datamodel
+    	values.put(EncounterTable.ID.getName(), e.getEncounterId());
     	values.put(EncounterTable.CREATOR.getName(), e.getCreator());
     	values.put(EncounterTable.VOIDED.getName(), 0);
     	mDb.insert(EncounterTable.TABLE_NAME, null, values);
@@ -400,5 +410,154 @@ public class DbAdapter {
 		values.put(PatientTable.WEIGHT.getName(), p.getWeight());
 		values.put(PatientTable.NAME.getName(), p.getName());
     	mDb.insert(PatientTable.TABLE_NAME, null, values);
+    }
+    
+    public EncounterBundle getEncounterBundle() {
+        EncounterBundle eb = new EncounterBundle();
+        Cursor encountersCursor =  mDb.query(EncounterTable.TABLE_NAME,
+                                null, null, null, null, null, null);
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (encountersCursor.moveToFirst()) {
+            do {
+                Encounter tempEncounter = null;
+                try
+                {
+                    tempEncounter = new Encounter(
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.PATIENT_ID.getName())),
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.ID.getName())),
+                    0,//encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable..getName()),);
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.PROVIDER_ID.getName())),
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.LOCATION_ID.getName())),
+                    df.parse(encountersCursor.getString(encountersCursor.getColumnIndex(EncounterTable.DATE_CREATED.getName()))),
+                    df.parse(encountersCursor.getString(encountersCursor.getColumnIndex(EncounterTable.DATE_CREATED.getName()))),
+                    0);
+                    eb.add(tempEncounter);
+                } catch (ParseException e)
+                {
+                    e.printStackTrace();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                encountersCursor.moveToNext();
+            } while(!encountersCursor.isAfterLast());
+        }
+        Log.i(LOG_TAG, String.format("Returning bundle of size %d from cursor of size %d.", eb.getBundle().size(), encountersCursor.getCount()));
+        return eb;
+    }
+    
+    public PatientBundle getPatientBundle() {
+        PatientBundle pb = new PatientBundle();
+        Cursor patientsCursor =  mDb.query(PatientTable.TABLE_NAME,
+                                null, null, null, null, null, null);
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (patientsCursor.moveToFirst()) {
+            do {
+                Patient tempPatient = null;
+                try
+                {
+                    tempPatient = new Patient();
+                    tempPatient.setPatientId(patientsCursor.getInt(patientsCursor.getColumnIndex(PatientTable.ID.getName())));
+                    tempPatient.setGender(patientsCursor.getString(patientsCursor.getColumnIndex(PatientTable.GENDER.getName())));
+                    tempPatient.setRace(patientsCursor.getString(patientsCursor.getColumnIndex(PatientTable.RACE.getName())));
+                    tempPatient.setBirth(df.parse(patientsCursor.getString(patientsCursor.getColumnIndex(PatientTable.BIRTHDATE.getName()))));
+                    tempPatient.setDead(patientsCursor.getInt(patientsCursor.getColumnIndex(PatientTable.DEAD.getName())));
+                    tempPatient.setBirthplace(patientsCursor.getString(patientsCursor.getColumnIndex(PatientTable.BIRTHPLACE.getName())));
+                    tempPatient.setHeight(0.); //TODO
+                    tempPatient.setWeight(0.); //TODO
+                    tempPatient.setName(patientsCursor.getString(patientsCursor.getColumnIndex(PatientTable.NAME.getName())));
+                    pb.add(tempPatient);
+                } catch (ParseException e)
+                {
+                    e.printStackTrace();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                patientsCursor.moveToNext();
+            } while(!patientsCursor.isAfterLast());
+        }
+        Log.i(LOG_TAG, String.format("Returning bundle of size %d from cursor of size %d.", pb.getBundle().size(), patientsCursor.getCount()));
+        return pb;
+    }
+    
+    public ObservationBundle getObservationBundle() {
+        ObservationBundle ob = new ObservationBundle();
+        Cursor observationsCursor =  mDb.query(ObservationTable.TABLE_NAME,
+                                null, null, null, null, null, null);
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (observationsCursor.moveToFirst()) {
+            do {
+                Observation tempObservation = null;
+                try
+                {
+                    tempObservation = new Observation();
+                    tempObservation.setObsId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.ID.getName())));
+                    tempObservation.setPatientId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.PATIENT_ID.getName())));
+                    tempObservation.setConceptId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.CONCEPT_ID.getName())));
+                    tempObservation.setEncounterId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.ENCOUNTER_ID.getName())));
+                    tempObservation.setDateCreated(df.parse(observationsCursor.getString(observationsCursor.getColumnIndex(ObservationTable.DATE_CREATED.getName()))));
+                    tempObservation.setDate(df.parse(observationsCursor.getString(observationsCursor.getColumnIndex(ObservationTable.DATETIME.getName()))));
+                    tempObservation.setText(observationsCursor.getString(observationsCursor.getColumnIndex(ObservationTable.TEXT.getName())));
+                    tempObservation.setValue(observationsCursor.getDouble(observationsCursor.getColumnIndex(ObservationTable.NUMERIC.getName())));
+                    tempObservation.setValueBoolean(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.BOOLEAN.getName())) == 0 ? false : true);
+                    tempObservation.setCreator(0); //TODO
+                    ob.add(tempObservation);
+                } catch (ParseException e)
+                {
+                    e.printStackTrace();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                observationsCursor.moveToNext();
+            } while(!observationsCursor.isAfterLast());
+        }
+        Log.i(LOG_TAG, String.format("Returning bundle of size %d from cursor of size %d.", ob.getBundle().size(), observationsCursor.getCount()));
+        return ob;
+    }
+    
+    public ProgramBundle getProgramBundle() {
+        ProgramBundle pb = new ProgramBundle();
+        Cursor programsCursor =  mDb.query(ProgramTable.TABLE_NAME,
+                                null, null, null, null, null, null);
+        if (programsCursor.moveToFirst()) {
+            do {
+                Program tempProgram = null;
+                try
+                {
+                    tempProgram = new Program();
+                    tempProgram.setProgramId(programsCursor.getInt(programsCursor.getColumnIndex(ProgramTable.ID.getName())));
+                    tempProgram.setConceptId(programsCursor.getInt(programsCursor.getColumnIndex(ProgramTable.CONCEPT_ID.getName())));
+                    pb.add(tempProgram);
+                }  catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                programsCursor.moveToNext();
+            } while(!programsCursor.isAfterLast());
+        }
+        Log.i(LOG_TAG, String.format("Returning bundle of size %d from cursor of size %d.", pb.getBundle().size(), programsCursor.getCount()));
+        return pb;
+    }
+    
+    public PatientProgramBundle getPatientProgramBundle() {
+        PatientProgramBundle pb = new PatientProgramBundle();
+        Cursor patientProgramsCursor =  mDb.query(PatientProgramTable.TABLE_NAME,
+                                null, null, null, null, null, null);
+        if (patientProgramsCursor.moveToFirst()) {
+            do {
+                PatientProgram tempPatientProgram = null;
+                try
+                {
+                    tempPatientProgram = new PatientProgram();
+                    tempPatientProgram.setPatientProgramId(patientProgramsCursor.getInt(patientProgramsCursor.getColumnIndex(PatientProgramTable.ID.getName())));
+                    tempPatientProgram.setPatientId(patientProgramsCursor.getInt(patientProgramsCursor.getColumnIndex(PatientProgramTable.PATIENT_ID.getName())));
+                    tempPatientProgram.setProgramId(patientProgramsCursor.getInt(patientProgramsCursor.getColumnIndex(PatientProgramTable.PROGRAM_ID.getName())));
+                    pb.add(tempPatientProgram);
+                }  catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                patientProgramsCursor.moveToNext();
+            } while(!patientProgramsCursor.isAfterLast());
+        }
+        Log.i(LOG_TAG, String.format("Returning bundle of size %d from cursor of size %d.", pb.getBundle().size(), patientProgramsCursor.getCount()));
+        return pb;
     }
 } 
