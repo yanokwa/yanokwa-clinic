@@ -23,27 +23,34 @@ import java.util.Vector;
 
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-public class PatientBundle {
-	private Vector<Patient> bundle;
-	
-	public PatientBundle() {
-		bundle = new Vector<Patient>();
-	}
-	
-	public void add(Patient element) {
-		bundle.add(element);
-	}
-	
-	public Vector<Patient> getBundle() {
-		return bundle;
-	}
-	
-	public void read(DataInputStream dis) throws IOException, 
-			InstantiationException, IllegalAccessException {
-		bundle = (Vector<Patient>) SerializationUtils.read(dis, Patient.class);
-	}
-	
-	public void write(DataOutputStream dos) throws IOException {
-		SerializationUtils.write(bundle, dos);
-	}
+/**
+ * @author Euzel Villanueva
+ *
+ */
+
+public class PatientProgramBundle {
+    private Vector<PatientProgram> bundle;
+    
+    public PatientProgramBundle() {
+        bundle = new Vector<PatientProgram>();
+    }
+    
+    public void add(PatientProgram element) {
+        bundle.add(element);
+    }
+    
+    public Vector<PatientProgram> getBundle() {
+        return bundle;
+    }
+    
+    public void read(DataInputStream dis) throws IOException, 
+            InstantiationException, IllegalAccessException {
+        bundle = (Vector<PatientProgram>) SerializationUtils.read(dis, PatientProgram.class);
+    }
+    
+    public void write(DataOutputStream dos) throws IOException {
+        SerializationUtils.write(bundle, dos);
+    }
+
 }
+

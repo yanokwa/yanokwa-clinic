@@ -29,25 +29,35 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 public class PatientProgram implements Persistent {
 
+    private Integer patientProgramId;
 	private Integer programId;
 	private Integer patientId;
 	
-	public PatientProgram(Integer patientId, Integer programId) {
+	public PatientProgram(Integer patientId, Integer programId, Integer patientProgramId) {
 		this.patientId = patientId;
 		this.programId = programId;
+		this.patientProgramId = patientProgramId;
 	}
 	
 	public PatientProgram() {
-		this(null, null);
+		this(null, null, null);
+	}
+	
+	public Integer getPatientProgramId() {
+		return patientProgramId;
+	}
+	
+	public void setPatientProgramId(Integer patientProgramId) {
+		this.patientProgramId = patientProgramId;
 	}
 	
 	public Integer getProgramId() {
-		return programId;
-	}
-	
-	public void setProgramId(Integer programId) {
-		this.programId = programId;
-	}
+        return programId;
+    }
+    
+    public void setProgramId(Integer programId) {
+        this.programId = programId;
+    }
 	
 	public Integer getPatientId() {
 		return patientId;

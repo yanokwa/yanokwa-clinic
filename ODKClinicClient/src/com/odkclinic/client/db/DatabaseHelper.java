@@ -38,14 +38,11 @@ class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
     	for (String createString: OpenMRS.createStatements())
     		db.execSQL(createString);
-        db.execSQL(DbConstants.PATIENT_TRIGGER);
-        db.execSQL(DbConstants.ENCOUNTER_TRIGGER);
-        db.execSQL(DbConstants.OBSERVATION_TRIGGER);
-        db.execSQL(DbConstants.DELETE_ENCOUNTER_TRIGGER);
-        db.execSQL(DbConstants.DELETE_OBSERVATION_TRIGGER);
+    	for (String trigger: DbConstants.TRIGGERS) 
+    		db.execSQL(trigger);
         for (String query: DbConstants.DEFAULT_VALUES)
         	db.execSQL(query);
-        for (String index: DbConstants.indexes) {
+        for (String index: DbConstants.INDEXES) {
         	db.execSQL(index);
         }
     }
