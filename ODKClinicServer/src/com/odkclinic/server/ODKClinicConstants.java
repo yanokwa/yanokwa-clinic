@@ -8,6 +8,7 @@ public class ODKClinicConstants {
 	public static final byte ACTION_ANDROID_UPLOAD_OBS = 4;
 	public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 5;
 	public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 6;
+	public static final byte ACTION_ANDROID_END = 45;
 	
 	/** Networking responses */
 	/** Problems occured during connection of the request. */
