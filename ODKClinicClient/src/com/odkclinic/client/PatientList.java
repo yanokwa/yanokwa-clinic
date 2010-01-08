@@ -42,6 +42,8 @@ import com.odkclinic.client.db.tables.CohortMemberTable;
 import com.odkclinic.client.db.tables.PatientTable;
 import com.odkclinic.client.xforms.EncounterBundle;
 import com.odkclinic.client.xforms.ObservationBundle;
+import com.odkclinic.client.xforms.PatientBundle;
+import com.odkclinic.client.xforms.ProgramBundle;
 
 /**
  * 
@@ -248,7 +250,78 @@ public class PatientList extends ExpandableListActivity {
 
         @Override
         protected Long doInBackground(Long... params) {
-            
+            DbAdapter db = new DbAdapter(PatientList.this);
+            DataInputStream dis = null;
+            DataOutputStream dos = null;
+            HttpURLConnection con = null;
+            try
+            {
+                URL url = new URL(SERVER_URL);
+                Log.d("Connection", "Starting");
+                con = (HttpURLConnection)url.openConnection();
+                con.setRequestMethod( "POST" );
+                con.setDoInput( true );
+                con.setDoOutput( true );
+                con.connect();
+                dis = new DataInputStream(con.getInputStream());
+                dos = new DataOutputStream(con.getOutputStream());
+                
+                dos.writeUTF(USER);
+                dos.writeUTF(PASS);
+                dos.writeUTF(SKEY);
+                dos.flush();
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_ENCOUNTER);
+                dos.flush();
+                EncounterBundle eb = new EncounterBundle();
+                eb.read(dis);
+                db.insertEncounterBundle(eb);
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_OBS);
+                dos.flush();
+                ObservationBundle ob = new ObservationBundle();
+                ob.read(dis);
+                db.insertObservationBundle(ob);
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PATIENTS);
+                dos.flush();
+                PatientBundle pb = new PatientBundle();
+                pb.read(dis);
+                db.insertPatientBundle(pb);
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PROGRAMS);
+                dos.flush();
+                ProgramBundle prb = new ProgramBundle();
+                prb.read(dis);
+                db.insertProgramBundle(prb);
+                
+                dos.writeByte(ACTION_ANDROID_END);
+                
+                dos.flush();
+                
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            } catch (InstantiationException e)
+            {
+                e.printStackTrace();
+            } catch (IllegalAccessException e)
+            {
+                e.printStackTrace();
+            } finally {
+                try
+                { 
+                    if (dis != null)
+                        dis.close();
+                    if (dos != null)
+                        dos.close();
+                    if (con != null)
+                        con.disconnect();
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
             
             return null;
         }
@@ -293,6 +366,8 @@ public class PatientList extends ExpandableListActivity {
                 
                 dos.writeByte(ACTION_ANDROID_END);
                 
+                dos.flush();
+                
                 byte success = dis.readByte();
                 
                 // For now just set the synced rows as updated
@@ -300,8 +375,7 @@ public class PatientList extends ExpandableListActivity {
                     db.markEncountersUpdated();
                     db.markObservationUpdated();
                 }
-                
-                
+                         
             } catch (IOException e)
             {
                 e.printStackTrace();
