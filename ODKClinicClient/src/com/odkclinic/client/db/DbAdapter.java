@@ -340,6 +340,18 @@ public class DbAdapter {
      *  Server Synchronization methods
      */
     
+    public void markEncountersUpdated() {
+        ContentValues values = new ContentValues();
+        values.put(EncounterTable.ISUPDATE.getName(), 0);
+        mDb.update(EncounterTable.TABLE_NAME, values, EncounterTable.ISUPDATE.getName() + "=1", null);
+    }
+    
+    public void markObservationUpdated() {
+        ContentValues values = new ContentValues();
+        values.put(ObservationTable.ISUPDATE.getName(), 0);
+        mDb.update(ObservationTable.TABLE_NAME, values, ObservationTable.ISUPDATE.getName() + "=1", null);
+    }
+    
     /**
      * Inserts given Encounter into database
      */
@@ -415,7 +427,7 @@ public class DbAdapter {
     public EncounterBundle getEncounterBundle() {
         EncounterBundle eb = new EncounterBundle();
         Cursor encountersCursor =  mDb.query(EncounterTable.TABLE_NAME,
-                                null, null, null, null, null, null);
+                                null, EncounterTable.ISUPDATE.getName() + "=1", null, null, null, null);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (encountersCursor.moveToFirst()) {
             do {
@@ -482,7 +494,7 @@ public class DbAdapter {
     public ObservationBundle getObservationBundle() {
         ObservationBundle ob = new ObservationBundle();
         Cursor observationsCursor =  mDb.query(ObservationTable.TABLE_NAME,
-                                null, null, null, null, null, null);
+                                null, ObservationTable.ISUPDATE.getName() + "=1", null, null, null, null);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (observationsCursor.moveToFirst()) {
             do {
