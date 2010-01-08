@@ -352,6 +352,20 @@ public class DbAdapter {
         mDb.update(ObservationTable.TABLE_NAME, values, ObservationTable.ISUPDATE.getName() + "=1", null);
     }
     
+    public void insertEncounterBundle(EncounterBundle eb) {
+        for (Encounter e: eb.getBundle()) {
+            if (checkEncounter(e.getEncounterId().longValue()))
+                insertEncounter(e);
+        }
+    }
+    
+    private boolean checkEncounter(long id) {
+        Cursor cursor = mDb.query(EncounterTable.TABLE_NAME, null, EncounterTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() == 0;
+        cursor.close();
+        return ret;
+    }
+    
     /**
      * Inserts given Encounter into database
      */
@@ -369,6 +383,19 @@ public class DbAdapter {
     	mDb.insert(EncounterTable.TABLE_NAME, null, values);
     }
     
+    public void insertObservationBundle(ObservationBundle ob) {
+        for (Observation o: ob.getBundle()) {
+            if (checkObservation(o.getObsId().longValue()))
+                insertObservation(o);
+        }
+    }
+    
+    private boolean checkObservation(long id) {
+        Cursor cursor = mDb.query(ObservationTable.TABLE_NAME, null, ObservationTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() == 1;
+        cursor.close();
+        return ret;
+    }
     /** 
      * Inserts given Observation into database
      */
@@ -385,6 +412,20 @@ public class DbAdapter {
     	values.put(ObservationTable.DATETIME.getName(), o.getDate().toString());
     	values.put(ObservationTable.CREATOR.getName(), o.getCreator());
     	mDb.insert(ObservationTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertProgramBundle(ProgramBundle prb) {
+        for (Program pr: prb.getBundle()) {
+            if (checkProgram(pr.getProgramId().longValue()))
+                insertProgram(pr);
+        }
+    }
+    
+    private boolean checkProgram(long id) {
+        Cursor cursor = mDb.query(ProgramTable.TABLE_NAME, null, ProgramTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() == 1;
+        cursor.close();
+        return ret;
     }
     
     /**
@@ -405,6 +446,20 @@ public class DbAdapter {
     	values.put(PatientProgramTable.PATIENT_ID.getName(), ppr.getPatientId());
     	values.put(PatientProgramTable.PROGRAM_ID.getName(), ppr.getProgramId());
     	mDb.insert(PatientProgramTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertPatientBundle(PatientBundle pb) {
+        for (Patient p: pb.getBundle()) {
+            if (checkPatient(p.getPatientId().longValue()))
+                insertPatient(p);
+        }
+    }
+    
+    private boolean checkPatient(long id) {
+        Cursor cursor = mDb.query(PatientTable.TABLE_NAME, null, PatientTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() == 1;
+        cursor.close();
+        return ret;
     }
     
     /**
