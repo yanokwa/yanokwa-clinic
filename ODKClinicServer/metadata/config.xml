@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE module PUBLIC "-//OpenMRS//DTD OpenMRS Config 1.2//EN" "http://resources.openmrs.org/doctype/config-1.2.dtd">
+
+<module configVersion="1.2">
+	<!-- Base Module Properties -->
+    <id>odkclinic</id>
+    <name>ODK Clinic</name>
+    <version>0.1</version>
+    <package>org.openmrs.module.@MODULE_ID@</package>
+    <author>Owen Kim</author>
+	<description>
+         Server module for Android application "ODK Clinic"
+	</description>
+	
+	<require_version>1.5.1</require_version>
+	<activator>@MODULE_PACKAGE@.ODKClinicActivator</activator>
+	
+	<servlet>
+		<servlet-name>AndroidServlet</servlet-name>
+	    <servlet-class>@MODULE_PACKAGE@.web.AndroidServlet</servlet-class>
+	</servlet>
+	
+</module>
