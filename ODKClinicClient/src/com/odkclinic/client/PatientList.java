@@ -16,10 +16,17 @@
 
 package com.odkclinic.client;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -33,6 +40,8 @@ import android.widget.SimpleCursorTreeAdapter;
 import com.odkclinic.client.db.DbAdapter;
 import com.odkclinic.client.db.tables.CohortMemberTable;
 import com.odkclinic.client.db.tables.PatientTable;
+import com.odkclinic.client.xforms.EncounterBundle;
+import com.odkclinic.client.xforms.ObservationBundle;
 
 /**
  * 
@@ -205,4 +214,114 @@ public class PatientList extends ExpandableListActivity {
 			return patientInfo;
 		}
 	}
+	
+    //TODO change to proper URL
+	public static final String SERVER_URL = "http://10.0.2.2:8080/openmrs/module/xforms/patientDownload.form";
+	private static final String USER = "admin";
+    private static final String PASS = "anKasemar77";
+    private static final String SKEY = "null"; //dummy serializer key
+    
+	public static final byte ACTION_ANDROID_DOWNLOAD_ENCOUNTER = 1;
+    public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 2;
+    public static final byte ACTION_ANDROID_DOWNLOAD_OBS = 3;
+    public static final byte ACTION_ANDROID_UPLOAD_OBS = 4;
+    public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 5;
+    public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 6;
+    public static final byte ACTION_ANDROID_END = 45;
+    
+    /** Networking responses */
+    /** Problems occured during connection of the request. */
+    public static final byte STATUS_ERROR = 0;
+    
+    /** Request communicated successfully. */
+    public static final byte STATUS_SUCCESS = 1;
+    
+    /** Not permitted to carry out the requested operation. */
+    public static final byte STATUS_ACCESS_DENIED = 2;
+    
+	/**
+     * 
+     * Class for syncing data from the server.
+     *
+     */
+    private class GetDataTask extends AsyncTask<Long, String, Long> {
+
+        @Override
+        protected Long doInBackground(Long... params) {
+            
+            
+            return null;
+        }
+    }
+    
+    /**
+     * 
+     * Class for syncing data to the server.
+     *
+     */
+    private class SendDataTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            DbAdapter db = new DbAdapter(PatientList.this);
+            EncounterBundle eb = db.getEncounterBundle();
+            ObservationBundle ob = db.getObservationBundle();
+            DataInputStream dis = null;
+            DataOutputStream dos = null;
+            HttpURLConnection con = null;
+            try
+            {
+                URL url = new URL(SERVER_URL);
+                Log.d("Connection", "Starting");
+                con = (HttpURLConnection)url.openConnection();
+                con.setRequestMethod( "POST" );
+                con.setDoInput( true );
+                con.setDoOutput( true );
+                con.connect();
+                dis = new DataInputStream(con.getInputStream());
+                dos = new DataOutputStream(con.getOutputStream());
+                
+                dos.writeUTF(USER);
+                dos.writeUTF(PASS);
+                dos.writeUTF(SKEY);
+                
+                dos.writeByte(ACTION_ANDROID_UPLOAD_ENCOUNTER);
+                eb.write(dos);
+                
+                dos.writeByte(ACTION_ANDROID_UPLOAD_OBS);
+                ob.write(dos);
+                
+                dos.writeByte(ACTION_ANDROID_END);
+                
+                byte success = dis.readByte();
+                
+                // For now just set the synced rows as updated
+                if (success == STATUS_SUCCESS) {
+                    db.markEncountersUpdated();
+                    db.markObservationUpdated();
+                }
+                
+                
+            } catch (IOException e)
+            {
+                e.printStackTrace();
+            } finally {
+                try
+                { 
+                    if (dis != null)
+                        dis.close();
+                    if (dos != null)
+                        dos.close();
+                    if (con != null)
+                        con.disconnect();
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+            
+            return null;
+        }
+    }
+    
 }
