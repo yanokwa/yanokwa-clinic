@@ -43,9 +43,7 @@ public class ODKClinicServer {
 			String name = dis.readUTF();
 			String pw = dis.readUTF();
 			String serializerKey = dis.readUTF();
-			String locale = dis.readUTF();
-			
-			byte action = dis.readByte();
+			//String locale = dis.readUTF();
 				
 			Context.openSession();
 			
@@ -58,20 +56,26 @@ public class ODKClinicServer {
 
 			if(responseStatus != ODKClinicConstants.STATUS_ACCESS_DENIED){
 				DataOutputStream dosTemp = new DataOutputStream(baos);
+				byte action = ODKClinicConstants.ACTION_ANDROID_END;
 				
-				if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER)
-					downloadEncounters(dis.readInt(), dosTemp, serializerKey);
-				else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER)
-					uploadEncounters(dis, dosTemp, serializerKey);
-				else if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS)
-					downloadObservations(dis.readInt(), dosTemp, serializerKey);
-				else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS)
-					uploadObservations(dis, dosTemp, serializerKey);
-				else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS) 
-					downloadPatients(dis, dosTemp, serializerKey);
-				else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS)
-					downloadPrograms(dis, dosTemp, serializerKey);
-
+				// keep reading actions and data until end byte is seen
+				do {
+        			action = dis.readByte();
+        			
+        			if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER)
+        				downloadEncounters(dis.readInt(), dosTemp, serializerKey);
+        			else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER)
+        				uploadEncounters(dis, dosTemp, serializerKey);
+        			else if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS)
+        				downloadObservations(dis.readInt(), dosTemp, serializerKey);
+        			else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS)
+        				uploadObservations(dis, dosTemp, serializerKey);
+        			else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS) 
+        				downloadPatients(dis, dosTemp, serializerKey);
+        			else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS)
+        				downloadPrograms(dis, dosTemp, serializerKey);
+        			
+				} while (action != ODKClinicConstants.ACTION_ANDROID_END);
 
 				responseStatus = ODKClinicConstants.STATUS_SUCCESS;
 			}
