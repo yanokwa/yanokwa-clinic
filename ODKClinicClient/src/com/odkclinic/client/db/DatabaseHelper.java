@@ -17,6 +17,8 @@
 package com.odkclinic.client.db;
 
 import com.odkclinic.client.db.tables.OpenMRS;
+import com.odkclinic.client.db.tables.views.EncounterView;
+import com.odkclinic.client.db.tables.views.ObservationView;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -45,6 +47,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
         for (String index: DbConstants.INDEXES) {
         	db.execSQL(index);
         }
+        db.execSQL(EncounterView.getCreateStatement());
+        db.execSQL(ObservationView.getCreateStatement());
     }
 
     @Override
