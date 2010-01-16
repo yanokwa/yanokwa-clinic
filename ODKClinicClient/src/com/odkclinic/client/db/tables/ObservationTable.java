@@ -21,7 +21,7 @@ package com.odkclinic.client.db.tables;
  *
  */
 public enum ObservationTable {
-	ID("obs_id", "INTEGER PRIMARY KEY autoincrement"),
+	ID("obs_id", "INTEGER PRIMARY KEY"),
 	PATIENT_ID("observation_patient_id", PatientTable.FKEY_RELATIONSHIP),
 	CONCEPT_ID("observation_concept_id", ConceptTable.FKEY_RELATIONSHIP),
 	ENCOUNTER_ID("observation_encounter_id", "INTEGER"),

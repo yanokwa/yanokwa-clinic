@@ -22,13 +22,14 @@ import com.odkclinic.client.db.tables.ConceptDataTypeTable;
 import com.odkclinic.client.db.tables.ConceptDescTable;
 import com.odkclinic.client.db.tables.ConceptNameTable;
 import com.odkclinic.client.db.tables.ConceptTable;
-import com.odkclinic.client.db.tables.EncounterTable;
 import com.odkclinic.client.db.tables.ObservationTable;
 import com.odkclinic.client.db.tables.PatientProgramTable;
 import com.odkclinic.client.db.tables.PatientTable;
 import com.odkclinic.client.db.tables.ProgramTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
+import com.odkclinic.client.db.tables.views.EncounterView;
+import com.odkclinic.client.db.tables.views.ObservationView;
 
 /**
  * Constants used by DB backend and accessing DB functionality.
@@ -187,16 +188,16 @@ public class DbConstants {
 				" FROM %s, %s, %s, %s, %s, %s " +
 				" WHERE %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = ? AND %s = ? AND %s = %s " +
 				" ORDER BY %s",
-				ConceptNameTable.NAME.getName(), ObservationTable.DATE_CREATED.getName(), ObservationTable.NUMERIC.getName(), ObservationTable.TEXT.getName(), 
-				ObservationTable.DATETIME.getName(), ObservationTable.BOOLEAN.getName(),
+				ConceptNameTable.NAME.getName(), ObservationView.DATE_CREATED.getName(), ObservationView.NUMERIC.getName(), ObservationView.TEXT.getName(), 
+				ObservationView.DATETIME.getName(), ObservationView.BOOLEAN.getName(),
 				
-				PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ProgramTable.TABLE_NAME, PatientProgramTable.TABLE_NAME, ObservationTable.TABLE_NAME,
+				PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ProgramTable.TABLE_NAME, PatientProgramTable.TABLE_NAME, ObservationView.TABLE_NAME,
 				
 				PatientTable.ID.getName(), PatientProgramTable.PATIENT_ID.getName(), ProgramTable.ID.getName(), PatientProgramTable.PROGRAM_ID.getName(), ProgramTable.CONCEPT_ID.getName(), 
-				ConceptTable.ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ObservationTable.CONCEPT_ID.getName(), ConceptTable.ID.getName(), 
-				ConceptTable.ID.getName(), PatientTable.ID.getName(), ObservationTable.PATIENT_ID.getName(), PatientTable.ID.getName(),
+				ConceptTable.ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ObservationView.CONCEPT_ID.getName(), ConceptTable.ID.getName(), 
+				ConceptTable.ID.getName(), PatientTable.ID.getName(), ObservationView.PATIENT_ID.getName(), PatientTable.ID.getName(),
 				
-				ObservationTable.DATE_CREATED.getName());
+				ObservationView.DATE_CREATED.getName());
     
     //TODO add more details
     /* 
@@ -209,13 +210,13 @@ public class DbConstants {
 				" FROM %s, %s " +
 				" WHERE %s = %s AND %s = ?" +
 				" ORDER BY %s",
-				EncounterTable.TYPE_NAME.getName(), EncounterTable.TYPE_DESC.getName(), EncounterTable.LOCATION_ID.getName(), 
-				EncounterTable.DATETIME.getName(),
+				EncounterView.TYPE_NAME.getName(), EncounterView.TYPE_DESC.getName(), EncounterView.LOCATION_ID.getName(), 
+				EncounterView.DATETIME.getName(),
 				
-				EncounterTable.TABLE_NAME, PatientTable.TABLE_NAME,
+				EncounterView.TABLE_NAME, PatientTable.TABLE_NAME,
 				
-				PatientTable.ID.getName(), EncounterTable.PATIENT_ID.getName(), PatientTable.ID.getName(),
-				EncounterTable.ID.getName());
+				PatientTable.ID.getName(), EncounterView.PATIENT_ID.getName(), PatientTable.ID.getName(),
+				EncounterView.ID.getName());
     
         public static final String CONCEPT_QUERY = 
         	String.format(

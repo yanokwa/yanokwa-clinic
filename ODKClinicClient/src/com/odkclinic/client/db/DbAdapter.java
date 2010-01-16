@@ -28,6 +28,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import com.odkclinic.client.db.tables.ClientEncounterTable;
+import com.odkclinic.client.db.tables.ClientObservationTable;
 import com.odkclinic.client.db.tables.CohortTable;
 import com.odkclinic.client.db.tables.EncounterTable;
 import com.odkclinic.client.db.tables.ObservationTable;
@@ -237,39 +239,39 @@ public class DbAdapter {
      */
     public void newObservation(long concept_id, long patient_id, String value) {
     	ContentValues values = new ContentValues();
-    	values.put(ObservationTable.TEXT.getName(), value);
-    	values.put(ObservationTable.CREATOR.getName(), 1);
-    	values.put(ObservationTable.VOIDED.getName(), 0);
-    	values.put(ObservationTable.CONCEPT_ID.getName(), concept_id);
-    	values.put(ObservationTable.PATIENT_ID.getName(), patient_id);
-    	mDb.insert(ObservationTable.TABLE_NAME, null, values);
+    	values.put(ClientObservationTable.TEXT.getName(), value);
+    	values.put(ClientObservationTable.CREATOR.getName(), 1);
+    	values.put(ClientObservationTable.VOIDED.getName(), 0);
+    	values.put(ClientObservationTable.CONCEPT_ID.getName(), concept_id);
+    	values.put(ClientObservationTable.PATIENT_ID.getName(), patient_id);
+    	mDb.insert(ClientObservationTable.TABLE_NAME, null, values);
     }
     public void newObservation(long concept_id, long patient_id, Double value) {
     	ContentValues values = new ContentValues();
-    	values.put(ObservationTable.NUMERIC.getName(), value);
-    	values.put(ObservationTable.CREATOR.getName(), 1);
-    	values.put(ObservationTable.VOIDED.getName(), 0);
-    	values.put(ObservationTable.CONCEPT_ID.getName(), concept_id);
-    	values.put(ObservationTable.PATIENT_ID.getName(), patient_id);
-    	mDb.insert(ObservationTable.TABLE_NAME, null, values); 
+    	values.put(ClientObservationTable.NUMERIC.getName(), value);
+    	values.put(ClientObservationTable.CREATOR.getName(), 1);
+    	values.put(ClientObservationTable.VOIDED.getName(), 0);
+    	values.put(ClientObservationTable.CONCEPT_ID.getName(), concept_id);
+    	values.put(ClientObservationTable.PATIENT_ID.getName(), patient_id);
+    	mDb.insert(ClientObservationTable.TABLE_NAME, null, values); 
     }
     public void newObservation(long concept_id, long patient_id, Date value) {
     	ContentValues values = new ContentValues();
-    	values.put(ObservationTable.DATETIME.getName(), value.toString());
-    	values.put(ObservationTable.CREATOR.getName(), 1);
-    	values.put(ObservationTable.VOIDED.getName(), 0);
-    	values.put(ObservationTable.CONCEPT_ID.getName(), concept_id);
-    	values.put(ObservationTable.PATIENT_ID.getName(), patient_id);
-    	mDb.insert(ObservationTable.TABLE_NAME, null, values);
+    	values.put(ClientObservationTable.DATETIME.getName(), value.toString());
+    	values.put(ClientObservationTable.CREATOR.getName(), 1);
+    	values.put(ClientObservationTable.VOIDED.getName(), 0);
+    	values.put(ClientObservationTable.CONCEPT_ID.getName(), concept_id);
+    	values.put(ClientObservationTable.PATIENT_ID.getName(), patient_id);
+    	mDb.insert(ClientObservationTable.TABLE_NAME, null, values);
     }
     public void newObservation(long concept_id, long patient_id, Boolean value) {
     	ContentValues values = new ContentValues();
-    	values.put(ObservationTable.BOOLEAN.getName(), value);
-    	values.put(ObservationTable.VOIDED.getName(), 0);
-    	values.put(ObservationTable.CREATOR.getName(), 1);
-    	values.put(ObservationTable.CONCEPT_ID.getName(), concept_id);
-    	values.put(ObservationTable.PATIENT_ID.getName(), patient_id);
-    	mDb.insert(ObservationTable.TABLE_NAME, null, values);
+    	values.put(ClientObservationTable.BOOLEAN.getName(), value);
+    	values.put(ClientObservationTable.VOIDED.getName(), 0);
+    	values.put(ClientObservationTable.CREATOR.getName(), 1);
+    	values.put(ClientObservationTable.CONCEPT_ID.getName(), concept_id);
+    	values.put(ClientObservationTable.PATIENT_ID.getName(), patient_id);
+    	mDb.insert(ClientObservationTable.TABLE_NAME, null, values);
     }
     
     /**
@@ -340,6 +342,7 @@ public class DbAdapter {
      *  Server Synchronization methods
      */
     
+    /*
     public void markEncountersUpdated() {
         ContentValues values = new ContentValues();
         values.put(EncounterTable.ISUPDATE.getName(), 0);
@@ -351,17 +354,19 @@ public class DbAdapter {
         values.put(ObservationTable.ISUPDATE.getName(), 0);
         mDb.update(ObservationTable.TABLE_NAME, values, ObservationTable.ISUPDATE.getName() + "=1", null);
     }
+    */
     
     public void insertEncounterBundle(EncounterBundle eb) {
         for (Encounter e: eb.getBundle()) {
-            if (checkEncounter(e.getEncounterId().longValue()))
-                insertEncounter(e);
+            if (!checkEncounterExists(e.getEncounterId().longValue())) // just delete if it exists already
+                mDb.delete(EncounterTable.TABLE_NAME, EncounterTable.ID.getName() + "=" + e.getEncounterId(), null);
+            insertEncounter(e);
         }
     }
     
-    private boolean checkEncounter(long id) {
+    private boolean checkEncounterExists(long id) {
         Cursor cursor = mDb.query(EncounterTable.TABLE_NAME, null, EncounterTable.ID.getName() + "=" + id, null, null, null, null); 
-        boolean ret = cursor.getCount() == 0;
+        boolean ret = cursor.getCount() != 0;
         cursor.close();
         return ret;
     }
@@ -380,19 +385,21 @@ public class DbAdapter {
     	values.put(EncounterTable.ID.getName(), e.getEncounterId());
     	values.put(EncounterTable.CREATOR.getName(), e.getCreator());
     	values.put(EncounterTable.VOIDED.getName(), 0);
+    	values.put(EncounterTable.ISUPDATE.getName(), 0);
     	mDb.insert(EncounterTable.TABLE_NAME, null, values);
     }
     
     public void insertObservationBundle(ObservationBundle ob) {
         for (Observation o: ob.getBundle()) {
-            if (checkObservation(o.getObsId().longValue()))
-                insertObservation(o);
+            if (checkObservationExists(o.getObsId().longValue()))
+                mDb.delete(ObservationTable.TABLE_NAME, ObservationTable.ID.getName() + "=" + o.getObsId(), null);
+            insertObservation(o);
         }
     }
     
-    private boolean checkObservation(long id) {
+    private boolean checkObservationExists(long id) {
         Cursor cursor = mDb.query(ObservationTable.TABLE_NAME, null, ObservationTable.ID.getName() + "=" + id, null, null, null, null); 
-        boolean ret = cursor.getCount() == 1;
+        boolean ret = cursor.getCount() != 0;
         cursor.close();
         return ret;
     }
@@ -411,19 +418,21 @@ public class DbAdapter {
     	values.put(ObservationTable.DATE_CREATED.getName(), o.getDateCreated().toString()); //TODO may not work
     	values.put(ObservationTable.DATETIME.getName(), o.getDate().toString());
     	values.put(ObservationTable.CREATOR.getName(), o.getCreator());
+    	values.put(ObservationTable.ISUPDATE.getName(), 0);
     	mDb.insert(ObservationTable.TABLE_NAME, null, values);
     }
     
     public void insertProgramBundle(ProgramBundle prb) {
         for (Program pr: prb.getBundle()) {
-            if (checkProgram(pr.getProgramId().longValue()))
-                insertProgram(pr);
+            if (checkProgramExists(pr.getProgramId().longValue()))
+                mDb.delete(ProgramTable.TABLE_NAME, ProgramTable.ID.getName() + "=" + pr.getProgramId(), null);
+            insertProgram(pr);
         }
     }
     
-    private boolean checkProgram(long id) {
+    private boolean checkProgramExists(long id) {
         Cursor cursor = mDb.query(ProgramTable.TABLE_NAME, null, ProgramTable.ID.getName() + "=" + id, null, null, null, null); 
-        boolean ret = cursor.getCount() == 1;
+        boolean ret = cursor.getCount() != 0;
         cursor.close();
         return ret;
     }
@@ -450,14 +459,15 @@ public class DbAdapter {
     
     public void insertPatientBundle(PatientBundle pb) {
         for (Patient p: pb.getBundle()) {
-            if (checkPatient(p.getPatientId().longValue()))
-                insertPatient(p);
+            if (checkPatientExists(p.getPatientId().longValue()))
+                mDb.delete(PatientTable.TABLE_NAME, PatientTable.ID.getName() + "=" + p.getPatientId(), null);
+            insertPatient(p);
         }
     }
     
-    private boolean checkPatient(long id) {
+    private boolean checkPatientExists(long id) {
         Cursor cursor = mDb.query(PatientTable.TABLE_NAME, null, PatientTable.ID.getName() + "=" + id, null, null, null, null); 
-        boolean ret = cursor.getCount() == 1;
+        boolean ret = cursor.getCount() != 0;
         cursor.close();
         return ret;
     }
@@ -481,8 +491,8 @@ public class DbAdapter {
     
     public EncounterBundle getEncounterBundle() {
         EncounterBundle eb = new EncounterBundle();
-        Cursor encountersCursor =  mDb.query(EncounterTable.TABLE_NAME,
-                                null, EncounterTable.ISUPDATE.getName() + "=1", null, null, null, null);
+        Cursor encountersCursor =  mDb.query(ClientEncounterTable.TABLE_NAME,
+                                null, ClientEncounterTable.ISUPDATE.getName() + "=1", null, null, null, null);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (encountersCursor.moveToFirst()) {
             do {
@@ -490,13 +500,13 @@ public class DbAdapter {
                 try
                 {
                     tempEncounter = new Encounter(
-                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.PATIENT_ID.getName())),
-                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.ID.getName())),
-                    0,//encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable..getName()),);
-                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.PROVIDER_ID.getName())),
-                    encountersCursor.getInt(encountersCursor.getColumnIndex(EncounterTable.LOCATION_ID.getName())),
-                    df.parse(encountersCursor.getString(encountersCursor.getColumnIndex(EncounterTable.DATE_CREATED.getName()))),
-                    df.parse(encountersCursor.getString(encountersCursor.getColumnIndex(EncounterTable.DATE_CREATED.getName()))),
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(ClientEncounterTable.PATIENT_ID.getName())),
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(ClientEncounterTable.ID.getName())),
+                    0,//encountersCursor.getInt(encountersCursor.getColumnIndex(ClientEncounterTable..getName()),);
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(ClientEncounterTable.PROVIDER_ID.getName())),
+                    encountersCursor.getInt(encountersCursor.getColumnIndex(ClientEncounterTable.LOCATION_ID.getName())),
+                    df.parse(encountersCursor.getString(encountersCursor.getColumnIndex(ClientEncounterTable.DATE_CREATED.getName()))),
+                    df.parse(encountersCursor.getString(encountersCursor.getColumnIndex(ClientEncounterTable.DATE_CREATED.getName()))),
                     0);
                     eb.add(tempEncounter);
                 } catch (ParseException e)
@@ -548,8 +558,8 @@ public class DbAdapter {
     
     public ObservationBundle getObservationBundle() {
         ObservationBundle ob = new ObservationBundle();
-        Cursor observationsCursor =  mDb.query(ObservationTable.TABLE_NAME,
-                                null, ObservationTable.ISUPDATE.getName() + "=1", null, null, null, null);
+        Cursor observationsCursor =  mDb.query(ClientObservationTable.TABLE_NAME,
+                                null, ClientObservationTable.ISUPDATE.getName() + "=1", null, null, null, null);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (observationsCursor.moveToFirst()) {
             do {
@@ -557,15 +567,15 @@ public class DbAdapter {
                 try
                 {
                     tempObservation = new Observation();
-                    tempObservation.setObsId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.ID.getName())));
-                    tempObservation.setPatientId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.PATIENT_ID.getName())));
-                    tempObservation.setConceptId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.CONCEPT_ID.getName())));
-                    tempObservation.setEncounterId(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.ENCOUNTER_ID.getName())));
-                    tempObservation.setDateCreated(df.parse(observationsCursor.getString(observationsCursor.getColumnIndex(ObservationTable.DATE_CREATED.getName()))));
-                    tempObservation.setDate(df.parse(observationsCursor.getString(observationsCursor.getColumnIndex(ObservationTable.DATETIME.getName()))));
-                    tempObservation.setText(observationsCursor.getString(observationsCursor.getColumnIndex(ObservationTable.TEXT.getName())));
-                    tempObservation.setValue(observationsCursor.getDouble(observationsCursor.getColumnIndex(ObservationTable.NUMERIC.getName())));
-                    tempObservation.setValueBoolean(observationsCursor.getInt(observationsCursor.getColumnIndex(ObservationTable.BOOLEAN.getName())) == 0 ? false : true);
+                    tempObservation.setObsId(observationsCursor.getInt(observationsCursor.getColumnIndex(ClientObservationTable.ID.getName())));
+                    tempObservation.setPatientId(observationsCursor.getInt(observationsCursor.getColumnIndex(ClientObservationTable.PATIENT_ID.getName())));
+                    tempObservation.setConceptId(observationsCursor.getInt(observationsCursor.getColumnIndex(ClientObservationTable.CONCEPT_ID.getName())));
+                    tempObservation.setEncounterId(observationsCursor.getInt(observationsCursor.getColumnIndex(ClientObservationTable.ENCOUNTER_ID.getName())));
+                    tempObservation.setDateCreated(df.parse(observationsCursor.getString(observationsCursor.getColumnIndex(ClientObservationTable.DATE_CREATED.getName()))));
+                    tempObservation.setDate(df.parse(observationsCursor.getString(observationsCursor.getColumnIndex(ClientObservationTable.DATETIME.getName()))));
+                    tempObservation.setText(observationsCursor.getString(observationsCursor.getColumnIndex(ClientObservationTable.TEXT.getName())));
+                    tempObservation.setValue(observationsCursor.getDouble(observationsCursor.getColumnIndex(ClientObservationTable.NUMERIC.getName())));
+                    tempObservation.setValueBoolean(observationsCursor.getInt(observationsCursor.getColumnIndex(ClientObservationTable.BOOLEAN.getName())) == 0 ? false : true);
                     tempObservation.setCreator(0); //TODO
                     ob.add(tempObservation);
                 } catch (ParseException e)
