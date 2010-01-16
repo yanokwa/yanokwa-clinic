@@ -22,12 +22,14 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import android.app.Activity;
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.test.mock.MockContext;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,6 +38,7 @@ import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.SimpleCursorTreeAdapter;
+import android.widget.Toast;
 
 import com.odkclinic.client.db.DbAdapter;
 import com.odkclinic.client.db.tables.CohortMemberTable;
@@ -58,16 +61,21 @@ public class PatientList extends ExpandableListActivity {
 	private DbAdapter mDb;
 	private int mGroupIdColumnIndex;
 	private ExpandableListAdapter mAdapter;
+	private Toast mToast;
+	//private GetDataTask mGData;
+	private SendDataTask mSData;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.patientlist_list);
-
+		
 		// instantiate db instance and open
 		mDb = new DbAdapter(this);
 		mDb.open();
 		fillData();
+		
+		mToast = Toast.makeText(this, "test", 2);
 	}
 
 	private void fillData() {
@@ -132,7 +140,6 @@ public class PatientList extends ExpandableListActivity {
 	
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
 		super.onDestroy();
 		mDb.close();
 	}
@@ -181,7 +188,18 @@ public class PatientList extends ExpandableListActivity {
 			managePatientsIntent();
 			return true;
 		case R.id.patientlist_sync:
-			//TODO: Networking stuff
+		    if (mSData == null || mSData.getStatus().equals(AsyncTask.Status.FINISHED)) { 
+		        Log.d(LOG_TAG, "Starting synchronization with server.");
+		        //mGData = new GetDataTask();
+		        mSData = new SendDataTask();
+		        //mGData.execute((Void[]) null);
+		        mSData.execute((Void[]) null);
+		        mToast.setText("Starting synchronization with server.");
+		        mToast.show();
+		    } else {
+		        mToast.setText("Already started synchronization with server.");
+                mToast.show();
+		    }
 			return true;
 		case R.id.patientlist_update:
 			updatesIntent();
@@ -246,10 +264,11 @@ public class PatientList extends ExpandableListActivity {
      * Class for syncing data from the server.
      *
      */
-    private class GetDataTask extends AsyncTask<Long, String, Long> {
+    /*
+    private class GetDataTask extends AsyncTask<Void, Void, Void> {
 
         @Override
-        protected Long doInBackground(Long... params) {
+        protected Void doInBackground(Void... params) {
             DbAdapter db = new DbAdapter(PatientList.this);
             DataInputStream dis = null;
             DataOutputStream dos = null;
@@ -257,7 +276,7 @@ public class PatientList extends ExpandableListActivity {
             try
             {
                 URL url = new URL(SERVER_URL);
-                Log.d("Connection", "Starting");
+                Log.d(LOG_TAG, "Starting Connection.");
                 con = (HttpURLConnection)url.openConnection();
                 con.setRequestMethod( "POST" );
                 con.setDoInput( true );
@@ -266,6 +285,7 @@ public class PatientList extends ExpandableListActivity {
                 dis = new DataInputStream(con.getInputStream());
                 dos = new DataOutputStream(con.getOutputStream());
                 
+                Log.d(LOG_TAG + "/GetDataTask", String.format("Sending user %s, password %s.", USER, PASS));
                 dos.writeUTF(USER);
                 dos.writeUTF(PASS);
                 dos.writeUTF(SKEY);
@@ -322,10 +342,9 @@ public class PatientList extends ExpandableListActivity {
                     e.printStackTrace();
                 }
             }
-            
             return null;
         }
-    }
+    } */
     
     /**
      * 
@@ -336,7 +355,7 @@ public class PatientList extends ExpandableListActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            DbAdapter db = new DbAdapter(PatientList.this);
+            DbAdapter db = new DbAdapter(null);
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
             DataInputStream dis = null;
@@ -345,7 +364,7 @@ public class PatientList extends ExpandableListActivity {
             try
             {
                 URL url = new URL(SERVER_URL);
-                Log.d("Connection", "Starting");
+                Log.d(LOG_TAG, "Starting Connection.");
                 con = (HttpURLConnection)url.openConnection();
                 con.setRequestMethod( "POST" );
                 con.setDoInput( true );
@@ -354,6 +373,7 @@ public class PatientList extends ExpandableListActivity {
                 dis = new DataInputStream(con.getInputStream());
                 dos = new DataOutputStream(con.getOutputStream());
                 
+                Log.d(LOG_TAG + "/SendDataTask", String.format("Sending user %s, password %s.", USER, PASS));
                 dos.writeUTF(USER);
                 dos.writeUTF(PASS);
                 dos.writeUTF(SKEY);
@@ -364,6 +384,32 @@ public class PatientList extends ExpandableListActivity {
                 dos.writeByte(ACTION_ANDROID_UPLOAD_OBS);
                 ob.write(dos);
                 
+                dos.flush();
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_ENCOUNTER);
+                dos.flush();
+                eb = new EncounterBundle();
+                eb.read(dis);
+                db.insertEncounterBundle(eb);
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_OBS);
+                dos.flush();
+                ob = new ObservationBundle();
+                ob.read(dis);
+                db.insertObservationBundle(ob);
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PATIENTS);
+                dos.flush();
+                PatientBundle pb = new PatientBundle();
+                pb.read(dis);
+                db.insertPatientBundle(pb);
+                
+                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PROGRAMS);
+                dos.flush();
+                ProgramBundle prb = new ProgramBundle();
+                prb.read(dis);
+                db.insertProgramBundle(prb);
+                
                 dos.writeByte(ACTION_ANDROID_END);
                 
                 dos.flush();
@@ -372,11 +418,20 @@ public class PatientList extends ExpandableListActivity {
                 
                 // For now just set the synced rows as updated
                 if (success == STATUS_SUCCESS) {
-                    db.markEncountersUpdated();
-                    db.markObservationUpdated();
+                    Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
+                    //db.markEncountersUpdated();
+                    //db.markObservationUpdated();
+                } else {
+                    Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status Code: %d.", success));
                 }
                          
             } catch (IOException e)
+            {
+                e.printStackTrace();
+            } catch (InstantiationException e)
+            {
+                e.printStackTrace();
+            } catch (IllegalAccessException e)
             {
                 e.printStackTrace();
             } finally {
@@ -393,9 +448,17 @@ public class PatientList extends ExpandableListActivity {
                     e.printStackTrace();
                 }
             }
-            
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void result)
+        {
+            mToast.setText("Synchronization with server has completed.");
+            mToast.show();
+        }
+        
+        
     }
     
 }
