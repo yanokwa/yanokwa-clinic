@@ -342,19 +342,25 @@ public class DbAdapter {
      *  Server Synchronization methods
      */
     
-    /*
-    public void markEncountersUpdated() {
+    public void markEncountersFailed() {
         ContentValues values = new ContentValues();
-        values.put(EncounterTable.ISUPDATE.getName(), 0);
-        mDb.update(EncounterTable.TABLE_NAME, values, EncounterTable.ISUPDATE.getName() + "=1", null);
+        values.put(ClientEncounterTable.ISUPDATE.getName(), 0);
+        mDb.update(ClientEncounterTable.TABLE_NAME, values, ClientEncounterTable.ISUPDATE.getName() + "=1", null);
     }
     
-    public void markObservationUpdated() {
+    public void markObservationFailed() {
         ContentValues values = new ContentValues();
-        values.put(ObservationTable.ISUPDATE.getName(), 0);
-        mDb.update(ObservationTable.TABLE_NAME, values, ObservationTable.ISUPDATE.getName() + "=1", null);
+        values.put(ClientObservationTable.ISUPDATE.getName(), 0);
+        mDb.update(ClientObservationTable.TABLE_NAME, values, ClientObservationTable.ISUPDATE.getName() + "=1", null);
     }
-    */
+    
+    public void deleteSyncedEncounters() {
+        mDb.delete(ClientEncounterTable.TABLE_NAME, ClientEncounterTable.ISUPDATE.getName() + "=1", null);
+    }
+    
+    public void deleteSyncedObservations() {
+        mDb.delete(ClientObservationTable.TABLE_NAME, ClientObservationTable.ISUPDATE.getName() + "=1", null);
+    }
     
     public void insertEncounterBundle(EncounterBundle eb) {
         for (Encounter e: eb.getBundle()) {
@@ -385,7 +391,6 @@ public class DbAdapter {
     	values.put(EncounterTable.ID.getName(), e.getEncounterId());
     	values.put(EncounterTable.CREATOR.getName(), e.getCreator());
     	values.put(EncounterTable.VOIDED.getName(), 0);
-    	values.put(EncounterTable.ISUPDATE.getName(), 0);
     	mDb.insert(EncounterTable.TABLE_NAME, null, values);
     }
     
@@ -418,7 +423,6 @@ public class DbAdapter {
     	values.put(ObservationTable.DATE_CREATED.getName(), o.getDateCreated().toString()); //TODO may not work
     	values.put(ObservationTable.DATETIME.getName(), o.getDate().toString());
     	values.put(ObservationTable.CREATOR.getName(), o.getCreator());
-    	values.put(ObservationTable.ISUPDATE.getName(), 0);
     	mDb.insert(ObservationTable.TABLE_NAME, null, values);
     }
     
