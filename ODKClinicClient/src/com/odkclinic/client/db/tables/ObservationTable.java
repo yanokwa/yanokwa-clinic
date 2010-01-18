@@ -31,8 +31,7 @@ public enum ObservationTable {
 	BOOLEAN("value_boolean", "bit NULL"),
 	CREATOR("creator", "INTEGER NOT NULL"),
 	DATE_CREATED("observation_date_created", "DATETIME DEFAULT (CURRENT_TIMESTAMP)"),
-	VOIDED("voided", "bit NOT NULL"),
-	ISUPDATE("isUpdate", "bit DEFAULT 1");
+	VOIDED("voided", "bit NOT NULL");
 	
 	public static String TABLE_NAME = "observation";
 	public static String TABLE_ACRONYM = "o"; //for queries

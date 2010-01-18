@@ -30,8 +30,7 @@ public enum EncounterTable {
 	DATETIME("encounter_datetime", "DATETIME NOT NULL"),
 	CREATOR("creator", "INTEGER NOT NULL"),
 	DATE_CREATED("date_created", "DATETIME DEFAULT (CURRENT_TIMESTAMP)"),
-	VOIDED("voided", "bit NOT NULL"),
-	ISUPDATE("isUpdate", "bit DEFAULT 1");
+	VOIDED("voided", "bit NOT NULL");
 	
 	public static String TABLE_NAME = "encounter";
 	public static String TABLE_ACRONYM = "e"; //for queries

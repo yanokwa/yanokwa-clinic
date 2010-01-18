@@ -22,14 +22,12 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import android.app.Activity;
 import android.app.ExpandableListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.test.mock.MockContext;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -264,98 +262,12 @@ public class PatientList extends ExpandableListActivity {
      * Class for syncing data from the server.
      *
      */
-    /*
-    private class GetDataTask extends AsyncTask<Void, Void, Void> {
 
-        @Override
-        protected Void doInBackground(Void... params) {
-            DbAdapter db = new DbAdapter(PatientList.this);
-            DataInputStream dis = null;
-            DataOutputStream dos = null;
-            HttpURLConnection con = null;
-            try
-            {
-                URL url = new URL(SERVER_URL);
-                Log.d(LOG_TAG, "Starting Connection.");
-                con = (HttpURLConnection)url.openConnection();
-                con.setRequestMethod( "POST" );
-                con.setDoInput( true );
-                con.setDoOutput( true );
-                con.connect();
-                dis = new DataInputStream(con.getInputStream());
-                dos = new DataOutputStream(con.getOutputStream());
-                
-                Log.d(LOG_TAG + "/GetDataTask", String.format("Sending user %s, password %s.", USER, PASS));
-                dos.writeUTF(USER);
-                dos.writeUTF(PASS);
-                dos.writeUTF(SKEY);
-                dos.flush();
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_ENCOUNTER);
-                dos.flush();
-                EncounterBundle eb = new EncounterBundle();
-                eb.read(dis);
-                db.insertEncounterBundle(eb);
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_OBS);
-                dos.flush();
-                ObservationBundle ob = new ObservationBundle();
-                ob.read(dis);
-                db.insertObservationBundle(ob);
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PATIENTS);
-                dos.flush();
-                PatientBundle pb = new PatientBundle();
-                pb.read(dis);
-                db.insertPatientBundle(pb);
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PROGRAMS);
-                dos.flush();
-                ProgramBundle prb = new ProgramBundle();
-                prb.read(dis);
-                db.insertProgramBundle(prb);
-                
-                dos.writeByte(ACTION_ANDROID_END);
-                
-                dos.flush();
-                
-            } catch (IOException e)
-            {
-                e.printStackTrace();
-            } catch (InstantiationException e)
-            {
-                e.printStackTrace();
-            } catch (IllegalAccessException e)
-            {
-                e.printStackTrace();
-            } finally {
-                try
-                { 
-                    if (dis != null)
-                        dis.close();
-                    if (dos != null)
-                        dos.close();
-                    if (con != null)
-                        con.disconnect();
-                } catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
-            }
-            return null;
-        }
-    } */
-    
-    /**
-     * 
-     * Class for syncing data to the server.
-     *
-     */
     private class SendDataTask extends AsyncTask<Void, Void, Void> {
 
         @Override
         protected Void doInBackground(Void... params) {
-            DbAdapter db = new DbAdapter(null);
+            DbAdapter db = new DbAdapter(new MainPage()); //just random reference
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
             DataInputStream dis = null;
@@ -390,25 +302,21 @@ public class PatientList extends ExpandableListActivity {
                 dos.flush();
                 eb = new EncounterBundle();
                 eb.read(dis);
-                db.insertEncounterBundle(eb);
                 
                 dos.writeByte(ACTION_ANDROID_DOWNLOAD_OBS);
                 dos.flush();
                 ob = new ObservationBundle();
                 ob.read(dis);
-                db.insertObservationBundle(ob);
                 
                 dos.writeByte(ACTION_ANDROID_DOWNLOAD_PATIENTS);
                 dos.flush();
                 PatientBundle pb = new PatientBundle();
                 pb.read(dis);
-                db.insertPatientBundle(pb);
                 
                 dos.writeByte(ACTION_ANDROID_DOWNLOAD_PROGRAMS);
                 dos.flush();
                 ProgramBundle prb = new ProgramBundle();
                 prb.read(dis);
-                db.insertProgramBundle(prb);
                 
                 dos.writeByte(ACTION_ANDROID_END);
                 
@@ -416,13 +324,24 @@ public class PatientList extends ExpandableListActivity {
                 
                 byte success = dis.readByte();
                 
-                // For now just set the synced rows as updated
-                if (success == STATUS_SUCCESS) {
+                if (success == STATUS_SUCCESS) { 
                     Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
-                    //db.markEncountersUpdated();
-                    //db.markObservationUpdated();
-                } else {
+                    
+                    // Delete the encounters/obs that were sent from client table
+                    db.deleteSyncedEncounters();
+                    db.deleteSyncedObservations();
+                    
+                    // Insert bundles into database
+                    db.insertProgramBundle(prb);
+                    db.insertPatientBundle(pb);
+                    db.insertObservationBundle(ob);
+                    db.insertEncounterBundle(eb);
+                    
+                    
+                } else { // mark the entries in the respective tables and leave them there.
                     Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status Code: %d.", success));
+                    db.markEncountersFailed();
+                    db.markObservationFailed();
                 }
                          
             } catch (IOException e)
