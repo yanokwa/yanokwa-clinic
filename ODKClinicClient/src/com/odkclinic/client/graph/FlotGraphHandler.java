@@ -90,7 +90,7 @@ public class FlotGraphHandler {
 			JSONObject grid = new JSONObject();
 			grid.put("clickable",true); //{"grid" : {"clickable":true}}
 			grid.put("mouseActiveRadius",40);
-			grid.put("color","#999999");
+			//grid.put("color","#999999");
 			options.put("grid",grid);
 			
 			JSONObject xaxis = new JSONObject();
