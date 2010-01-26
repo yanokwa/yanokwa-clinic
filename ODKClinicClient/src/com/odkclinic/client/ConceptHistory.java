@@ -212,7 +212,7 @@ public class ConceptHistory extends Activity implements com.odkclinic.client.gra
         
         //set up graph
         mWebView = (WebView) this.findViewById(R.id.graphview);
-        mWebView.setBackgroundColor(color.darker_gray);
+       // mWebView.setBackgroundColor(R.color.White);
         fillData();
         Log.i(LOG_TAG,"Displaying historical observations for patient "+mPatientID+", concept "+mConceptID +" of type "+mConceptType);
 

@@ -10,7 +10,7 @@
 		<item name="android:textStyle">bold</item>
 		<item name="android:layout_gravity">center_vertical|center_horizontal</item>
 		<item name="android:layout_marginBottom">5px</item>
-		<item name="android:textColor">#eee</item>
+	<!--  <item name="android:textColor">@color/DarkGrey</item> -->
     </style>
     <style name="SectionTitleText" parent="@style/TitleText">
         <item name="android:textSize">9pt</item>
@@ -19,7 +19,18 @@
         <item name="android:textSize">8pt</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="ODKClinicTheme">
+    <style name="ODKClinicTheme" parent="android:Theme.Light">
+    <!--  <item name="android:listViewStyle">@style/ODKListView</item> -->
         <item name="android:textSize">8pt</item>
+    <!--   <item name="android:background">@color/White</item>
+        <item name="android:textColor">@color/Black</item> -->
     </style>
+    <style name="ODKListView" parent="@android:style/Widget.ListView">
+		<item name="android:divider">@color/DarkGrey</item>
+		<!-- <item name="android:childDivider">@color/DarkGrey</item> -->
+		<item name="android:dividerHeight">2dp</item>
+		<item name="android:footerDividersEnabled">true</item>
+		<item name="android:headerDividersEnabled">true</item>
+    </style>
+
 </resources>
