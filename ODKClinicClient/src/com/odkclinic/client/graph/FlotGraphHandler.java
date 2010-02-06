@@ -86,6 +86,15 @@ public class FlotGraphHandler {
 			result.put("points", new JSONObject().put("show", true)); // { "points": { "show" : true }}
 			arr.put(result);
 			
+			//pan and zoom options
+			JSONObject pan = new JSONObject();
+			pan.put("interactive", true);
+			options.put("pan", pan);
+			
+			JSONObject zoom = new JSONObject();
+			pan.put("interactive", true);
+			options.put("zoom", zoom);
+			
 			//series option arguments
 			JSONObject grid = new JSONObject();
 			grid.put("clickable",true); //{"grid" : {"clickable":true}}
