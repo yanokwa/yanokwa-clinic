@@ -262,6 +262,7 @@ public class ConceptHistory extends Activity implements com.odkclinic.client.gra
         //initialize web view
         mWebView.getSettings().setJavaScriptEnabled(true);
         mWebView.addJavascriptInterface(mGraphHandler, "mGraphHandler");
+//        mWebView.getSettings().setBuiltInZoomControls(true);
         mWebView.loadUrl("file:///android_asset/flot/html/linegraph.html");	
         
 	}

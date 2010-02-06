@@ -7,6 +7,8 @@
     <!--[if IE]><script language="javascript" type="text/javascript" src="../excanvas.min.js"></script><![endif]-->
     <script language="javascript" type="text/javascript" src="../jquery.js"></script>
     <script language="javascript" type="text/javascript" src="../jquery.flot.js"></script>
+    <script language="javascript" type="text/javascript" src="../jquery.flot.navigate.js"></script>
+    
 
  </head>
     <body>
@@ -14,12 +16,15 @@
 	
     <div id="placeholder" style="width:300px;height:300px;"></div>
 	<div id="clickdata"></div>
+	
 
 
 <script id="source" language="javascript" type="text/javascript">
+
 function load(){
 	setGraphSize();
 	window.mGraphHandler.loadGraph();
+	times++;
 }
 
 function setStyle(objId, style, value) {
@@ -51,6 +56,19 @@ function GotGraph(data,options,display) {
 	
 	        
 	    }); 
+	    
+	 // add zoom out button 
+    $('<div class="button" style="right:20px;top:20px">zoom out</div>').appendTo(placeholder).click(function (e) {
+        e.preventDefault();
+        plot.zoomOut();
+    });
+    
+   // add zoom in button 
+    $('<div class="button" style="right:20px;top:20px">zoom in</div>').appendTo(placeholder).click(function (e) {
+        e.preventDefault();
+        plot.zoom();
+    });
+	    
 	 //ok we are done
 	window.mGraphHandler.onGraphRendered()
 }
