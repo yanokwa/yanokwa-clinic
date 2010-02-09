@@ -36,6 +36,7 @@ import com.odkclinic.client.db.tables.ObservationTable;
 import com.odkclinic.client.db.tables.PatientProgramTable;
 import com.odkclinic.client.db.tables.PatientTable;
 import com.odkclinic.client.db.tables.ProgramTable;
+import com.odkclinic.client.db.tables.SettingsTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
 import com.odkclinic.client.xforms.Encounter;
@@ -342,26 +343,6 @@ public class DbAdapter {
      *  Server Synchronization methods
      */
     
-    public void markEncountersFailed() {
-        ContentValues values = new ContentValues();
-        values.put(ClientEncounterTable.ISUPDATE.getName(), 0);
-        mDb.update(ClientEncounterTable.TABLE_NAME, values, ClientEncounterTable.ISUPDATE.getName() + "=1", null);
-    }
-    
-    public void markObservationFailed() {
-        ContentValues values = new ContentValues();
-        values.put(ClientObservationTable.ISUPDATE.getName(), 0);
-        mDb.update(ClientObservationTable.TABLE_NAME, values, ClientObservationTable.ISUPDATE.getName() + "=1", null);
-    }
-    
-    public void deleteSyncedEncounters() {
-        mDb.delete(ClientEncounterTable.TABLE_NAME, ClientEncounterTable.ISUPDATE.getName() + "=1", null);
-    }
-    
-    public void deleteSyncedObservations() {
-        mDb.delete(ClientObservationTable.TABLE_NAME, ClientObservationTable.ISUPDATE.getName() + "=1", null);
-    }
-    
     public void insertEncounterBundle(EncounterBundle eb) {
         for (Encounter e: eb.getBundle()) {
             if (!checkEncounterExists(e.getEncounterId().longValue())) // just delete if it exists already
@@ -495,8 +476,15 @@ public class DbAdapter {
     
     public EncounterBundle getEncounterBundle() {
         EncounterBundle eb = new EncounterBundle();
-        Cursor encountersCursor =  mDb.query(ClientEncounterTable.TABLE_NAME,
-                                null, ClientEncounterTable.ISUPDATE.getName() + "=1", null, null, null, null);
+        
+        // Send failed bundle first (assumes rev token still the same) 
+        Cursor encountersCursor = mDb.query(ClientEncounterTable.TABLE_NAME,
+                null, ClientEncounterTable.ISUPDATE.getName() + "=1", null, null, null, null);
+        
+        // Send table instead if no failed bundle.
+        if (!encountersCursor.moveToFirst())
+        encountersCursor =  mDb.query(ClientEncounterTable.TABLE_NAME,
+                                null, ClientEncounterTable.ISUPDATE.getName() + "=0", null, null, null, null);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (encountersCursor.moveToFirst()) {
             do {
@@ -564,6 +552,9 @@ public class DbAdapter {
         ObservationBundle ob = new ObservationBundle();
         Cursor observationsCursor =  mDb.query(ClientObservationTable.TABLE_NAME,
                                 null, ClientObservationTable.ISUPDATE.getName() + "=1", null, null, null, null);
+        if (!observationsCursor.moveToFirst())
+            observationsCursor =  mDb.query(ClientObservationTable.TABLE_NAME,
+                null, ClientObservationTable.ISUPDATE.getName() + "=0", null, null, null, null);
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (observationsCursor.moveToFirst()) {
             do {
@@ -641,4 +632,99 @@ public class DbAdapter {
         Log.i(LOG_TAG, String.format("Returning bundle of size %d from cursor of size %d.", pb.getBundle().size(), patientProgramsCursor.getCount()));
         return pb;
     }
+    
+    
+    /**
+     * Protocol V2 DB Functions
+     */
+    
+    
+    /**
+     * Check syncronization lock status.
+     * @return Returns true if table is locked, false otherwise.
+     */
+    public boolean checkSync() {
+        Cursor bool = mDb.query(SettingsTable.TABLE_NAME, 
+                      new String[] { SettingsTable.NUMERIC_VALUE.getName() }, 
+                      SettingsTable.NAME.getName() + "=LOCK", 
+                      null, null, null, null);
+        if (bool.moveToFirst()) {
+            return bool.getInt(1) == 1 ? true : false;
+        } else {
+            return false;
+        }
+    }
+    
+    public void markSync(boolean mark) {
+        ContentValues values = new ContentValues();
+        values.put(SettingsTable.NUMERIC_VALUE.getName(), mark ? 1:0);
+        mDb.update(SettingsTable.TABLE_NAME, values, SettingsTable.NAME.getName() + "=LOCK", null);
+    }
+    
+    public long getRevToken() {
+        Cursor tok = mDb.query(SettingsTable.TABLE_NAME, 
+                    new String[] { SettingsTable.NUMERIC_VALUE.getName() }, 
+                    SettingsTable.NAME.getName() + "=LOCK", 
+                    null, null, null, null);
+        return tok.getLong(1);
+    }
+    
+    public void setRevToken(long token) {
+        ContentValues values = new ContentValues();
+        values.put(SettingsTable.NUMERIC_VALUE.getName(), token);
+        mDb.update(SettingsTable.TABLE_NAME, values, SettingsTable.NAME.getName() + "=REV", null);
+    }
+    
+    public void markEncountersFailed(EncounterBundle eb) {
+        ContentValues values = new ContentValues();
+        values.put(ClientEncounterTable.ISUPDATE.getName(), 0);
+        StringBuilder sb = new StringBuilder();
+        for (Encounter e: eb.getBundle()) {
+            sb.append(" OR ");
+            sb.append(EncounterTable.ID.getName());
+            sb.append(" = ");
+            sb.append(e.getEncounterId());
+            sb.append(" ");
+        }
+        mDb.update(ClientEncounterTable.TABLE_NAME, values, ClientEncounterTable.ISUPDATE.getName() + "=1" + sb.toString(), null);
+    }
+    
+    public void markObservationsFailed(ObservationBundle ob) {
+        ContentValues values = new ContentValues();
+        values.put(ClientObservationTable.ISUPDATE.getName(), 0);
+        StringBuilder sb = new StringBuilder();
+        for (Observation o: ob.getBundle()) {
+            sb.append(" OR ");
+            sb.append(ObservationTable.ID.getName());
+            sb.append(" = ");
+            sb.append(o.getObsId());
+            sb.append(" ");
+        }
+        mDb.update(ClientObservationTable.TABLE_NAME, values, ClientObservationTable.ISUPDATE.getName() + "=1" + sb.toString(), null);
+    }
+    
+    public void deleteSyncedEncounters(EncounterBundle eb) {
+        StringBuilder sb = new StringBuilder();
+        for (Encounter e: eb.getBundle()) {
+            sb.append(" OR ");
+            sb.append(EncounterTable.ID.getName());
+            sb.append(" = ");
+            sb.append(e.getEncounterId());
+            sb.append(" ");
+        }
+        mDb.delete(ClientEncounterTable.TABLE_NAME, ClientEncounterTable.ISUPDATE.getName() + "=1" + sb.toString(), null);
+    }
+    
+    public void deleteSyncedObservations(ObservationBundle ob) {
+        StringBuilder sb = new StringBuilder();
+        for (Observation o: ob.getBundle()) {
+            sb.append(" OR ");
+            sb.append(ObservationTable.ID.getName());
+            sb.append(" = ");
+            sb.append(o.getObsId());
+            sb.append(" ");
+        }
+        mDb.delete(ClientObservationTable.TABLE_NAME, ClientObservationTable.ISUPDATE.getName() + "=1" + sb.toString(), null);
+    }
+    
 } 

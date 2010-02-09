@@ -60,7 +60,6 @@ public class PatientList extends ExpandableListActivity {
 	private int mGroupIdColumnIndex;
 	private ExpandableListAdapter mAdapter;
 	private Toast mToast;
-	//private GetDataTask mGData;
 	private SendDataTask mSData;
 
 	@Override
@@ -111,9 +110,6 @@ public class PatientList extends ExpandableListActivity {
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		switch (requestCode) {
 		case R.id.patientlist_manage:
-			
-			break;
-		case R.id.patientlist_sync:
 			
 			break;
 		case R.id.patientlist_update:
@@ -188,9 +184,7 @@ public class PatientList extends ExpandableListActivity {
 		case R.id.patientlist_sync:
 		    if (mSData == null || mSData.getStatus().equals(AsyncTask.Status.FINISHED)) { 
 		        Log.d(LOG_TAG, "Starting synchronization with server.");
-		        //mGData = new GetDataTask();
 		        mSData = new SendDataTask();
-		        //mGData.execute((Void[]) null);
 		        mSData.execute((Void[]) null);
 		        mToast.setText("Starting synchronization with server.");
 		        mToast.show();
@@ -268,8 +262,12 @@ public class PatientList extends ExpandableListActivity {
         @Override
         protected Void doInBackground(Void... params) {
             DbAdapter db = new DbAdapter(new MainPage()); //just random reference
+            if (db.checkSync()) {
+                return null;
+            } 
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
+            long newRevToken = System.currentTimeMillis();
             DataInputStream dis = null;
             DataOutputStream dos = null;
             HttpURLConnection con = null;
@@ -285,11 +283,21 @@ public class PatientList extends ExpandableListActivity {
                 dis = new DataInputStream(con.getInputStream());
                 dos = new DataOutputStream(con.getOutputStream());
                 
+                // Try to authenticate
                 Log.d(LOG_TAG + "/SendDataTask", String.format("Sending user %s, password %s.", USER, PASS));
                 dos.writeUTF(USER);
                 dos.writeUTF(PASS);
                 dos.writeUTF(SKEY);
+                dos.writeLong(db.getRevToken());
                 
+                // Check if authentication failed
+                byte success = dis.readByte();
+                if (success == STATUS_ACCESS_DENIED){ 
+                    Log.d(LOG_TAG + "/SendDataTask", "Authentication failed.");
+                    return null;
+                }
+                
+                // Do actions
                 dos.writeByte(ACTION_ANDROID_UPLOAD_ENCOUNTER);
                 eb.write(dos);
                 
@@ -322,14 +330,14 @@ public class PatientList extends ExpandableListActivity {
                 
                 dos.flush();
                 
-                byte success = dis.readByte();
+                success = dis.readByte();
                 
                 if (success == STATUS_SUCCESS) { 
                     Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
                     
                     // Delete the encounters/obs that were sent from client table
-                    db.deleteSyncedEncounters();
-                    db.deleteSyncedObservations();
+                    db.deleteSyncedEncounters(eb);
+                    db.deleteSyncedObservations(ob);
                     
                     // Insert bundles into database
                     db.insertProgramBundle(prb);
@@ -337,11 +345,13 @@ public class PatientList extends ExpandableListActivity {
                     db.insertObservationBundle(ob);
                     db.insertEncounterBundle(eb);
                     
+                    // update rev token to new value
+                    db.setRevToken(newRevToken); //TODO check if we get new one from server or not
                     
                 } else { // mark the entries in the respective tables and leave them there.
                     Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status Code: %d.", success));
-                    db.markEncountersFailed();
-                    db.markObservationFailed();
+                    db.markEncountersFailed(eb);
+                    db.markObservationsFailed(ob);
                 }
                          
             } catch (IOException e)
