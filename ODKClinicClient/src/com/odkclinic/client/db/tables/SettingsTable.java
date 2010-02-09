@@ -21,7 +21,7 @@ package com.odkclinic.client.db.tables;
  *
  *	Table used for revision token and phone id. 
  */
-public enum Settings {
+public enum SettingsTable {
 	NAME("name", "VARCHAR(3) PRIMARY KEY"),
 	NUMERIC_VALUE("numeric_value", "INTEGER NOT NULL");
     
@@ -30,21 +30,21 @@ public enum Settings {
     private String COLUMN_NAME;
     private String COLUMN_TYPE;
     
-    public static String[] COLUMNS = new String[Settings.values().length];
-    public static String[] COLUMNS_TYPE = new String[Settings.values().length];
+    public static String[] COLUMNS = new String[SettingsTable.values().length];
+    public static String[] COLUMNS_TYPE = new String[SettingsTable.values().length];
     
-    private Settings(String column_name, String column_type) {
+    private SettingsTable(String column_name, String column_type) {
         COLUMN_NAME = column_name;
         COLUMN_TYPE = column_type;
     }
     
     static {
-        for (int c = 0; c < Settings.values().length; c++) {
-            COLUMNS[c] =Settings.values()[c].COLUMN_NAME;
+        for (int c = 0; c < SettingsTable.values().length; c++) {
+            COLUMNS[c] =SettingsTable.values()[c].COLUMN_NAME;
         }
 
-        for (int c = 0; c < Settings.values().length; c++) {
-            COLUMNS_TYPE[c] =Settings.values()[c].COLUMN_TYPE;
+        for (int c = 0; c < SettingsTable.values().length; c++) {
+            COLUMNS_TYPE[c] =SettingsTable.values()[c].COLUMN_TYPE;
         }
     }
 
