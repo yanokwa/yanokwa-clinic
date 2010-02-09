@@ -258,13 +258,17 @@ public class PatientList extends ExpandableListActivity {
      */
 
     private class SendDataTask extends AsyncTask<Void, Void, Void> {
-
+        private boolean fail = true;
         @Override
         protected Void doInBackground(Void... params) {
             DbAdapter db = new DbAdapter(new MainPage()); //just random reference
             if (db.checkSync()) {
                 return null;
             }
+            if (mToast == null)
+                mToast = Toast.makeText(new PatientList(), 0, 2);
+            mToast.setText("Starting synchronization of server");
+            mToast.show();
             db.markSync(true);
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
@@ -348,7 +352,7 @@ public class PatientList extends ExpandableListActivity {
                     
                     // update rev token to new value
                     db.setRevToken(newRevToken); //TODO check if we get new one from server or not
-                    
+                    fail = false;
                 } else { // mark the entries in the respective tables and leave them there.
                     Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status Code: %d.", success));
                     db.markEncountersFailed(eb);
@@ -385,7 +389,12 @@ public class PatientList extends ExpandableListActivity {
         @Override
         protected void onPostExecute(Void result)
         {
-            mToast.setText("Synchronization with server has completed.");
+            if (mToast != null)
+                mToast = Toast.makeText(new PatientList(), "", 2);
+            if (fail) {
+                mToast.setText("Synchronization with server has failed.");
+            } else 
+                mToast.setText("Synchronization with server has completed.");
             mToast.show();
         }
         
