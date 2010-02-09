@@ -679,28 +679,34 @@ public class DbAdapter {
         ContentValues values = new ContentValues();
         values.put(ClientEncounterTable.ISUPDATE.getName(), 0);
         StringBuilder sb = new StringBuilder();
-        for (Encounter e: eb.getBundle()) {
+        sb.append(EncounterTable.ID.getName());
+        sb.append("=");
+        sb.append(eb.getBundle().get(0).getEncounterId());
+        for (int i = 1; i < eb.getBundle().size(); i++) {
             sb.append(" OR ");
             sb.append(EncounterTable.ID.getName());
             sb.append(" = ");
-            sb.append(e.getEncounterId());
+            sb.append(eb.getBundle().get(i).getEncounterId());
             sb.append(" ");
         }
-        mDb.update(ClientEncounterTable.TABLE_NAME, values, ClientEncounterTable.ISUPDATE.getName() + "=1" + sb.toString(), null);
+        mDb.update(ClientEncounterTable.TABLE_NAME, values, sb.toString(), null);
     }
     
     public void markObservationsFailed(ObservationBundle ob) {
         ContentValues values = new ContentValues();
         values.put(ClientObservationTable.ISUPDATE.getName(), 0);
         StringBuilder sb = new StringBuilder();
-        for (Observation o: ob.getBundle()) {
+        sb.append(ObservationTable.ID.getName());
+        sb.append("=");
+        sb.append(ob.getBundle().get(0).getObsId());
+        for (int i = 1; i < ob.getBundle().size(); i++) {
             sb.append(" OR ");
             sb.append(ObservationTable.ID.getName());
             sb.append(" = ");
-            sb.append(o.getObsId());
+            sb.append(ob.getBundle().get(i).getObsId());
             sb.append(" ");
         }
-        mDb.update(ClientObservationTable.TABLE_NAME, values, ClientObservationTable.ISUPDATE.getName() + "=1" + sb.toString(), null);
+        mDb.update(ClientObservationTable.TABLE_NAME, values, sb.toString(), null);
     }
     
     public void deleteSyncedEncounters(EncounterBundle eb) {
