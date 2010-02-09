@@ -264,7 +264,8 @@ public class PatientList extends ExpandableListActivity {
             DbAdapter db = new DbAdapter(new MainPage()); //just random reference
             if (db.checkSync()) {
                 return null;
-            } 
+            }
+            db.markSync(true);
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
             long newRevToken = System.currentTimeMillis();
@@ -376,7 +377,8 @@ public class PatientList extends ExpandableListActivity {
                 {
                     e.printStackTrace();
                 }
-            }
+                db.markSync(false);
+            } 
             return null;
         }
 
