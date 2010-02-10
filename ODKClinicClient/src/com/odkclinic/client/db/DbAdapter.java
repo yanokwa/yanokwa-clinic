@@ -646,10 +646,10 @@ public class DbAdapter {
     public boolean checkSync() {
         Cursor bool = mDb.query(SettingsTable.TABLE_NAME, 
                       new String[] { SettingsTable.NUMERIC_VALUE.getName() }, 
-                      SettingsTable.NAME.getName() + "=LOCK", 
+                      SettingsTable.NAME.getName() + "='LOCK'", 
                       null, null, null, null);
         if (bool.moveToFirst()) {
-            return bool.getInt(1) == 1 ? true : false;
+            return bool.getInt(0) == 1 ? true : false;
         } else {
             return false;
         }
@@ -658,21 +658,21 @@ public class DbAdapter {
     public void markSync(boolean mark) {
         ContentValues values = new ContentValues();
         values.put(SettingsTable.NUMERIC_VALUE.getName(), mark ? 1:0);
-        mDb.update(SettingsTable.TABLE_NAME, values, SettingsTable.NAME.getName() + "=LOCK", null);
+        mDb.update(SettingsTable.TABLE_NAME, values, SettingsTable.NAME.getName() + "='LOCK'", null);
     }
     
     public long getRevToken() {
         Cursor tok = mDb.query(SettingsTable.TABLE_NAME, 
                     new String[] { SettingsTable.NUMERIC_VALUE.getName() }, 
-                    SettingsTable.NAME.getName() + "=LOCK", 
+                    SettingsTable.NAME.getName() + "='REV'", 
                     null, null, null, null);
-        return tok.getLong(1);
+        return tok.getLong(0);
     }
     
     public void setRevToken(long token) {
         ContentValues values = new ContentValues();
         values.put(SettingsTable.NUMERIC_VALUE.getName(), token);
-        mDb.update(SettingsTable.TABLE_NAME, values, SettingsTable.NAME.getName() + "=REV", null);
+        mDb.update(SettingsTable.TABLE_NAME, values, SettingsTable.NAME.getName() + "='REV'", null);
     }
     
     public void markEncountersFailed(EncounterBundle eb) {

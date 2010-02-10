@@ -256,20 +256,28 @@ public class PatientList extends ExpandableListActivity {
      * Class for syncing data from the server.
      *
      */
-
+    
     private class SendDataTask extends AsyncTask<Void, Void, Void> {
         private boolean fail = true;
+        
+        
+        
+        @Override
+        protected void onPreExecute()
+        {
+            super.onPreExecute();
+            mToast.setText("Starting synchronization of server");
+            mToast.show();
+        }
+
         @Override
         protected Void doInBackground(Void... params) {
-            DbAdapter db = new DbAdapter(new MainPage()); //just random reference
+            DbAdapter db = mDb == null ? new DbAdapter(new MainPage()) : mDb; //just random reference
             if (db.checkSync()) {
                 return null;
             }
-            if (mToast == null)
-                mToast = Toast.makeText(new PatientList(), 0, 2);
-            mToast.setText("Starting synchronization of server");
-            mToast.show();
             db.markSync(true);
+            
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
             long newRevToken = System.currentTimeMillis();
@@ -279,7 +287,7 @@ public class PatientList extends ExpandableListActivity {
             try
             {
                 URL url = new URL(SERVER_URL);
-                Log.d(LOG_TAG, "Starting Connection.");
+                //Log.d(LOG_TAG, "Starting Connection.");
                 con = (HttpURLConnection)url.openConnection();
                 con.setRequestMethod( "POST" );
                 con.setDoInput( true );
@@ -340,6 +348,8 @@ public class PatientList extends ExpandableListActivity {
                 if (success == STATUS_SUCCESS) { 
                     Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
                     
+                    db = db == null ? new DbAdapter(new MainPage()) : db;
+                    
                     // Delete the encounters/obs that were sent from client table
                     db.deleteSyncedEncounters(eb);
                     db.deleteSyncedObservations(ob);
@@ -383,13 +393,13 @@ public class PatientList extends ExpandableListActivity {
                 }
                 db.markSync(false);
             } 
-            return null;
+            return (Void) null;
         }
 
         @Override
         protected void onPostExecute(Void result)
         {
-            if (mToast != null)
+            if (mToast == null)
                 mToast = Toast.makeText(new PatientList(), "", 2);
             if (fail) {
                 mToast.setText("Synchronization with server has failed.");
