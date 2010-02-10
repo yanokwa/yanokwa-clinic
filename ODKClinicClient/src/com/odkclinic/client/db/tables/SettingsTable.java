@@ -22,7 +22,7 @@ package com.odkclinic.client.db.tables;
  *	Table used for revision token and phone id. 
  */
 public enum SettingsTable {
-	NAME("name", "VARCHAR(3) PRIMARY KEY"),
+	NAME("name", "VARCHAR(4) PRIMARY KEY"),
 	NUMERIC_VALUE("numeric_value", "INTEGER NOT NULL");
     
     public static String TABLE_NAME = "settings";

@@ -24,8 +24,8 @@ import com.odkclinic.client.db.tables.SettingsTable;
  */
 public enum SettingsDefault
 {
-    REV("REV", 0),
-    LOCK("LOCK", 0);
+    REV("'REV'", 0),
+    LOCK("'LOCK'", 0);
     
     public static final String TABLE = SettingsTable.TABLE_NAME;
     
@@ -54,12 +54,12 @@ public enum SettingsDefault
                 if (j < SettingsTable.COLUMNS.length - 1) {
                     sb.append(",");
                 }
-                sb.append(")VALUES (");
-                sb.append(sd.name);
-                sb.append(",");
-                sb.append(sd.value);
-                sb.append(");");
             }   
+            sb.append(") VALUES(");
+            sb.append(sd.name);
+            sb.append(",");
+            sb.append(sd.value);
+            sb.append(");");
             ret[i++] = sb.toString();
         }
         return ret;

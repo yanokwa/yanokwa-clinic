@@ -69,7 +69,10 @@ public enum OpenMRS {
 			VisitedTable.COLUMNS_TYPE),
 	Updates(UpdatesTable.TABLE_NAME,
 		    UpdatesTable.COLUMNS,
-		    UpdatesTable.COLUMNS_TYPE);
+		    UpdatesTable.COLUMNS_TYPE),
+    Settings(SettingsTable.TABLE_NAME,
+             SettingsTable.COLUMNS,
+             SettingsTable.COLUMNS_TYPE);
 	
 	public static final String DATABASE_NAME = "openmrsdata";
 	public static final int DATABASE_VERSION = 3;
