@@ -1,6 +1,10 @@
 package com.odkclinic.server;
 
 public class ODKClinicConstants {
+	/** table suffixes for openmrs database */
+	public static final String ENCOUNTER_TABLE = "encounter";
+	public static final String OBS_TABLE = "obs";
+	
 	/** Actions for Android ODK app */
 	public static final byte ACTION_ANDROID_DOWNLOAD_ENCOUNTER = 1;
 	public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 2;

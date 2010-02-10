@@ -31,11 +31,11 @@ public class ODKClinicServer {
 	public void handleStreams(DataInputStream dis, DataOutputStream dosParam)
 	throws IOException, Exception {
 		
-		ZOutputStream gzip = new ZOutputStream(dosParam,JZlib.Z_BEST_COMPRESSION);
-		DataOutputStream dos = new DataOutputStream(gzip);
-		
+		//ZOutputStream gzip = new ZOutputStream(dosParam,JZlib.Z_BEST_COMPRESSION);
+		//DataOutputStream dos = new DataOutputStream(gzip);
+		DataOutputStream dos = dosParam;
 
-		byte responseStatus = ODKClinicConstants.STATUS_ERROR;
+		byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
 
 		try{
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -43,16 +43,18 @@ public class ODKClinicServer {
 			String name = dis.readUTF();
 			String pw = dis.readUTF();
 			String serializerKey = dis.readUTF();
-			//String locale = dis.readUTF();
-				
-			Context.openSession();
+			long revToken = dis.readLong();
 			
+			Context.openSession();
+			log.debug("Session opened");
 			try{
 				Context.authenticate(name, pw);
 			}
 			catch(ContextAuthenticationException ex){
 				responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
 			}
+			
+			dos.writeByte(responseStatus);
 
 			if(responseStatus != ODKClinicConstants.STATUS_ACCESS_DENIED){
 				DataOutputStream dosTemp = new DataOutputStream(baos);
@@ -61,16 +63,17 @@ public class ODKClinicServer {
 				// keep reading actions and data until end byte is seen
 				do {
         			action = dis.readByte();
+        			log.debug("Action:" + action);
         			
         			if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER)
-        				downloadEncounters(dis.readInt(), dosTemp, serializerKey);
-        			else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER)
-        				uploadEncounters(dis, dosTemp, serializerKey);
-        			else if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS)
-        				downloadObservations(dis.readInt(), dosTemp, serializerKey);
-        			else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS)
-        				uploadObservations(dis, dosTemp, serializerKey);
-        			else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS) 
+        				downloadEncounters(dis.readInt(), dosTemp, serializerKey, revToken);
+        			else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER) {
+        				uploadEncounters(dis, dosTemp, serializerKey, revToken);
+        			} else if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS)
+        				downloadObservations(dis.readInt(), dosTemp, serializerKey,revToken);
+        			else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS) {
+        				uploadObservations(dis, dosTemp, serializerKey, revToken);
+        			} else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS) 
         				downloadPatients(dis, dosTemp, serializerKey);
         			else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS)
         				downloadPrograms(dis, dosTemp, serializerKey);
@@ -80,20 +83,20 @@ public class ODKClinicServer {
 				responseStatus = ODKClinicConstants.STATUS_SUCCESS;
 			}
 
-			dos.writeByte(responseStatus);
+			
 
 			if(responseStatus == ODKClinicConstants.STATUS_SUCCESS)
 				dos.write(baos.toByteArray());
 
 			dos.flush();
-			gzip.finish();
+			//gzip.finish();
 		}
 		catch(Exception ex){
 			log.error(ex.getMessage(),ex);
 			try{
-				dos.writeByte(responseStatus);
+				dos.writeByte(ODKClinicConstants.STATUS_ERROR);
 				dos.flush();
-				gzip.finish();
+				//gzip.finish();
 			}
 			catch(Exception e){
 				e.printStackTrace();
@@ -104,15 +107,15 @@ public class ODKClinicServer {
 		}
 	}
 	
-	private void downloadEncounters(Integer patientId, OutputStream os, String serializerKey) throws Exception{
+	private void downloadEncounters(Integer patientId, OutputStream os, String serializerKey, long revToken) throws Exception{
 		
-		AndroidDownloadManager.downloadEncounters(patientId, os, serializerKey);
+		AndroidDownloadManager.downloadEncounters(patientId, os, serializerKey, revToken);
 
 	}
 	
-	private void uploadEncounters(DataInputStream is, DataOutputStream dos, String serializerKey) throws IOException {
+	private void uploadEncounters(DataInputStream is, DataOutputStream dos, String serializerKey, long revToken) throws IOException {
 
-		boolean result = AndroidDownloadManager.uploadEncounters(is, serializerKey);
+		boolean result = AndroidDownloadManager.uploadEncounters(is, serializerKey, revToken);
 		if (result) {
 			dos.writeBoolean(true);
 		} else {
@@ -121,15 +124,15 @@ public class ODKClinicServer {
 		
 	}
 	
-	private void downloadObservations(Integer patientId, OutputStream os, String serializerKey) throws Exception{
+	private void downloadObservations(Integer patientId, OutputStream os, String serializerKey, long revToken) throws Exception{
 		
-		AndroidDownloadManager.downloadObservations(patientId, os, serializerKey);
+		AndroidDownloadManager.downloadObservations(patientId, os, serializerKey, revToken);
 
 	}
 	
-	private void uploadObservations(DataInputStream is, DataOutputStream dos, String serializerKey) throws IOException {
+	private void uploadObservations(DataInputStream is, DataOutputStream dos, String serializerKey, long revToken) throws IOException {
 
-		boolean result = AndroidDownloadManager.uploadObservations(is, serializerKey);
+		boolean result = AndroidDownloadManager.uploadObservations(is, serializerKey, revToken);
 		if (result) {
 			dos.writeBoolean(true);
 		} else {
