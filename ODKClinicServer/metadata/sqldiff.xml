@@ -10,35 +10,41 @@
 			Creating the revision token tables and triggers
 		</description>
 		<sql>
-		
-		CREATE TABLE IF NOT EXISTS `odkclinic_obs` (
-			  `id` int(11) NOT NULL,
-			  `revision_token` datetime NOT NULL default '0000-00-00 00:00:00',
-			  PRIMARY KEY  (`id`)
+		DROP TABLE IF EXISTS odkclinic_obs;
+		CREATE TABLE IF NOT EXISTS odkclinic_obs (
+			  id int(11) NOT NULL,
+			  revision_token datetime NOT NULL default '0000-00-00 00:00:00',
+			  PRIMARY KEY  (id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 		
-		CREATE TABLE IF NOT EXISTS `odkclinic_encounter` (
-			`id` int NOT NULL,
-			`revision_token` datetime NOT NULL default '0000-00-00 00:00:00',
-			PRIMARY KEY (`id`)
+		DROP TABLE  IF EXISTS odkclinic_encounter;
+		CREATE TABLE IF NOT EXISTS odkclinic_encounter (
+			id int NOT NULL,
+			revision_token datetime NOT NULL default '0000-00-00 00:00:00',
+			PRIMARY KEY (id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 			
-		CREATE TRIGGER obs_insert AFTER INSERT ON obs
+		DROP TRIGGER IF EXISTS obs_insert;	
+		CREATE TRIGGER obs_insert BEFORE INSERT ON obs
 			FOR EACH ROW
-			INSERT INTO odkclinic_obs(id,revision_token) VALUES (NEW.id, NOW());
-			
-		CREATE TRIGGER encounter_trigger AFTER INSERT ON encounter
+			INSERT INTO odkclinic_obs(id,revision_token) VALUES (NEW.obs_id, NOW());
+		
+		DROP TRIGGER IF EXISTS encounter_trigger;
+		CREATE TRIGGER encounter_trigger BEFORE INSERT ON encounter
 			FOR EACH ROW
-			INSERT INTO odkclinic_encounter(id, revision_token) VALUES (NEW.id, NOW();
-			
+			INSERT INTO odkclinic_encounter(id, revision_token) VALUES (NEW.encounter_id, NOW());
+		
+		DROP TRIGGER IF EXISTS obs_update;
 		CREATE TRIGGER obs_update AFTER UPDATE ON obs 
 			FOR EACH ROW
 			UPDATE odkclinic_obs SET odkclinic_obs.revision_token = NOW() 
-			WHERE NEW.id = odkclinic_obs.id;
-			
+			WHERE NEW.obs_id = odkclinic_obs.id;
+		
+		DROP TRIGGER IF EXISTS enc_update;
 		CREATE TRIGGER enc_update AFTER UPDATE ON encounter
+		    FOR EACH ROW
 			UPDATE odkclinic_encounter SET odkclinic_encounter.revision_token = NOW() 
-			WHERE NEW.id = odkclinic_encounter.id;
+			WHERE NEW.encounter_id = odkclinic_encounter.id;
 		
 		
 		</sql>
