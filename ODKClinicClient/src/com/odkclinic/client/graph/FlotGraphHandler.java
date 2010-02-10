@@ -41,7 +41,7 @@ public class FlotGraphHandler {
 	
 	/** Padding in pixels around graph within WebView **/
 	private static int graphPadding = 10;
-	private static int bottomPadding = 30;
+	private static int bottomPadding = 70;
 
 	public FlotGraphHandler(WebView appView, MODE mode) {
 		this.mAppView = appView;

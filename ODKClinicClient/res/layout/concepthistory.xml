@@ -21,16 +21,25 @@
 	android:layout_height="wrap_content"
 	android:layout_alignParentBottom="true"
 	/>
-	
-		<TextView 
+		    <TextView 
+		android:id="@+id/concepthistory_value"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	  	android:text=" "
+		android:layout_below="@id/concepthistory_name"
+		android:visibility="gone"
+	    />
+			<TextView 
 		android:id="@+id/concepthistory_empty"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	  	android:text="@string/concepthistory_empty"
-	  	android:layout_above="@id/newmeasurementbutton"
-	  	android:layout_below="@id/concepthistory_name"
+        android:layout_above="@id/newmeasurementbutton"
+		android:layout_below="@id/concepthistory_name"
 	  	android:visibility="gone"
 	    />
+
+
 	<WebView android:id="@+id/graphview"
             android:layout_height="fill_parent"
             android:layout_width="fill_parent"

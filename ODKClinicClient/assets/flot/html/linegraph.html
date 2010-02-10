@@ -14,8 +14,12 @@
     <body>
 
 	
-    <div id="placeholder" style="width:300px;height:300px;"></div>
-	<div id="clickdata"></div>
+	
+	    <div id="placeholder" style="width:300px;height:300px;"></div>
+	    <div id="clickdata"></div>
+		<div id="pageholder" style="position:relative;">
+
+	
 	
 
 
@@ -48,23 +52,44 @@ function GotGraph(data,options,display) {
 	                    var xtime = new Date(x/1);
 	 					$("#clickdata").text(y +" (recorded "+xtime.toLocaleString()+")"); 
 						}  
+
 						
 						//call the handler for more action
 	                	window.mGraphHandler.onClick(item.dataIndex);
 	                
 	            }
+	            
+	            //pan graph	
+	            var diffX = "";
+	            var diffY = 0;	
+				var axes = plot.getAxes();
+				
+				
+				var centery = (axes.yaxis.p2c(axes.yaxis.max) - axes.yaxis.p2c(axes.yaxis.min))/2.00 ;
+				centery += axes.yaxis.p2c(axes.yaxis.min);
+				diffY += (axes.yaxis.p2c(pos.y) - centery).toFixed(0)/1;
+				
+				
+				var centerx =  (axes.xaxis.p2c(axes.xaxis.max) - axes.xaxis.p2c(axes.xaxis.min))/2.00 ;
+				centerx += axes.xaxis.p2c(axes.xaxis.min);
+				diffX += (axes.xaxis.p2c(pos.x) - centerx).toFixed(0)/1;
+
+
+				plot.pan({ left:  diffX, top: diffY })
+				var args = { left: diffX , top: diffY };
+				//$("#clickdata").text("diff "+args.left+","+args.top); 
 	
 	        
 	    }); 
 	    
 	 // add zoom out button 
-    $('<div class="button" style="right:20px;top:20px">zoom out</div>').appendTo(placeholder).click(function (e) {
+    $('<div class="button" style="position:absolute;right:50%; top:0px"> <img src="../imgs/btn_zoom_down_normal.9.png" alt="zoom out"/></div>').appendTo($("#pageholder")).click(function (e) {
         e.preventDefault();
         plot.zoomOut();
     });
     
    // add zoom in button 
-    $('<div class="button" style="right:20px;top:20px">zoom in</div>').appendTo(placeholder).click(function (e) {
+    $('<div class="button" style="position:absolute;left:50%; top:0px"><img src="../imgs/btn_zoom_up_normal.9.png" alt="zoom in"/></div>').appendTo($("#pageholder")).click(function (e) {
         e.preventDefault();
         plot.zoom();
     });
