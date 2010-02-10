@@ -17,10 +17,10 @@ package com.odkclinic.client;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.json.JSONArray;
 
-import android.R.color;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -68,6 +68,7 @@ public class ConceptHistory extends Activity implements com.odkclinic.client.gra
 	WebView mWebView;
 	TextView mTitleView;
 	TextView mEmptyView;
+	TextView mValueView;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -205,6 +206,8 @@ public class ConceptHistory extends Activity implements com.odkclinic.client.gra
         	}});
         
 
+        mValueView = (TextView) this.findViewById(R.id.concepthistory_value);
+        
         mTitleView= (TextView) this.findViewById(R.id.concepthistory_name);
         mTitleView.setText(concept_name);
         
@@ -370,6 +373,26 @@ public class ConceptHistory extends Activity implements com.odkclinic.client.gra
 			Intent i = new Intent(this.getApplicationContext(), ObservationDetails.class);
 			i.putExtras(extras);
 			startActivityForResult(i, ACTIVITY_NEW_CONCEPT);
+		}else{
+			//TODO: figure out why this is not the main thread
+			
+//			Cursor c = mDb.getConceptHistory(mConceptID, mPatientID);
+//	    	startManagingCursor(c);
+//	    	c.moveToPosition(position);
+//	    	
+//	    	//since we know it is a number
+//	    	String value = c.getString(c.getColumnIndexOrThrow(ObservationTable.NUMERIC.getName()));
+//	    	String dateString = c.getString(c.getColumnIndexOrThrow(ObservationTable.DATE_CREATED.getName()));
+//	    	Date date;
+//			try {
+//				date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateString);
+//			} catch (ParseException e) {
+//				date = null;
+//			}
+//			
+//			String valueMessage = value;
+//			valueMessage += date != null? " observed on "+ date.toLocaleString(): "";
+//			mValueView.setText(valueMessage);
 		}
 	}
 	
