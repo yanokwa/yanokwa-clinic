@@ -7,12 +7,14 @@ public class ODKClinicConstants {
 	
 	/** Actions for Android ODK app */
 	public static final byte ACTION_ANDROID_DOWNLOAD_ENCOUNTER = 1;
-	public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 2;
-	public static final byte ACTION_ANDROID_DOWNLOAD_OBS = 3;
-	public static final byte ACTION_ANDROID_UPLOAD_OBS = 4;
-	public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 5;
-	public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 6;
-	public static final byte ACTION_ANDROID_END = 45;
+	public static final byte ACTION_ANDROID_DOWNLOAD_OBS = 2;
+	public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 4;
+	public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 8;
+	public static final byte ACTION_ANDROID_DOWNLOADS = 15;
+	public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 16;
+	public static final byte ACTION_ANDROID_UPLOAD_OBS = 32;
+	public static final byte ACTION_ANDROID_UPLOADS = 48;
+	public static final byte ACTION_ANDROID_END = 64;
 	
 	/** Networking responses */
 	/** Problems occured during connection of the request. */

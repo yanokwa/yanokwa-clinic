@@ -11,14 +11,14 @@
 		</description>
 		<sql>
 		DROP TABLE IF EXISTS odkclinic_obs;
-		CREATE TABLE IF NOT EXISTS odkclinic_obs (
+		CREATE TABLE odkclinic_obs (
 			  id int(11) NOT NULL,
 			  revision_token datetime NOT NULL default '0000-00-00 00:00:00',
 			  PRIMARY KEY  (id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 		
 		DROP TABLE  IF EXISTS odkclinic_encounter;
-		CREATE TABLE IF NOT EXISTS odkclinic_encounter (
+		CREATE TABLE odkclinic_encounter (
 			id int NOT NULL,
 			revision_token datetime NOT NULL default '0000-00-00 00:00:00',
 			PRIMARY KEY (id)

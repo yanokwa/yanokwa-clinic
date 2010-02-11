@@ -9,7 +9,7 @@ import java.util.Vector;
 import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-public class EncounterBundle {
+public class EncounterBundle implements Bundle<Encounter>{
 	private Vector<Encounter> bundle;
 	
 	public EncounterBundle() {
