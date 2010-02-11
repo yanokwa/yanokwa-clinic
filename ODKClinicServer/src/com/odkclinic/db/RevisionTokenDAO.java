@@ -11,5 +11,6 @@ public interface RevisionTokenDAO {
 	 * @return revision token
 	 */
 	public Date getRevisionToken(String table, int id);
+	public long getLargestRevisionToken(String table);
 	
 }
