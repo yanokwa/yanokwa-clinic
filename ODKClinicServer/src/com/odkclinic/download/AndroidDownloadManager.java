@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.util.Date;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Vector;
@@ -133,48 +132,59 @@ public class AndroidDownloadManager {
 	}
 	
 	/**
-	 * Retrieves encounters from InputStream and saves them to server
+	 * Retrieves encounters from InputStream
 	 * @param is
 	 * @param serializerKey
 	 * @return true if successful, false otherwise
 	 */
-	public static boolean uploadEncounters(InputStream is, String serializerKey, long revToken) {
-		ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+	public static EncounterBundle uploadEncounters(InputStream is, String serializerKey) {
 		EncounterBundle bundle = new EncounterBundle();
+		boolean success = false;
 		try {
 			bundle.read((DataInputStream)is);
+			success = true;
 		} catch (IOException e) {
 			log.error("odkclinic upload failed", e);
-			return false;
 		} catch (InstantiationException e) {
 			log.error("odkclinic upload failed", e);
-			return false;
 		} catch (IllegalAccessException e) {
 			log.error("odkclinic upload failed", e);
-			return false;
 		}
-		EncounterService encounterService = Context.getEncounterService();
-		UserService userService = Context.getUserService();
-		
-		Vector<Encounter> encounters = bundle.getBundle();
-		
-		for (Encounter enc : encounters) {
-			long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId()).getTime();
-			if (revToken < stateToken) {
-				User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
-				org.openmrs.Encounter inEnc = new org.openmrs.Encounter();
-				//inEnc.setEncounterId(enc.getEncounterId());
-				inEnc.setEncounterType(new EncounterType(enc.getEncounterType()));
-				inEnc.setProvider(prov);
-				inEnc.setLocation(new Location(enc.getLocationId()));
-				inEnc.setDateCreated(enc.getDateCreated());
-				inEnc.setEncounterDatetime(enc.getDateEncountered());
-				inEnc.setCreator(prov);
-				encounterService.saveEncounter(inEnc);
-			}
-		}
-		
-		return true;
+		if (success)
+		    return bundle;
+		else 
+		    return null;
+	}
+	
+	/**
+	 * Commits given encounters to server database.
+	 * @param eb
+	 * @param revToken
+	 * @return true if successful, false otherwise
+	 */
+	public static boolean commitEncounters(EncounterBundle eb, long revToken) {
+	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+	    EncounterService encounterService = Context.getEncounterService();
+        UserService userService = Context.getUserService();
+        
+        Vector<Encounter> encounters = eb.getBundle();
+        
+        for (Encounter enc : encounters) {
+            long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId()).getTime();
+            if (revToken < stateToken) {
+                User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
+                org.openmrs.Encounter inEnc = new org.openmrs.Encounter();
+                //inEnc.setEncounterId(enc.getEncounterId());
+                inEnc.setEncounterType(new EncounterType(enc.getEncounterType()));
+                inEnc.setProvider(prov);
+                inEnc.setLocation(new Location(enc.getLocationId()));
+                inEnc.setDateCreated(enc.getDateCreated());
+                inEnc.setEncounterDatetime(enc.getDateEncountered());
+                inEnc.setCreator(prov);
+                encounterService.saveEncounter(inEnc);
+            }
+        }
+	    return true;
 	}
 	
 	/**
@@ -216,56 +226,68 @@ public class AndroidDownloadManager {
 	}
 	
 	/**
-	 * Retrieves observations from InputStream and saves them to server
+	 * Retrieves observations from InputStream
 	 * @param is
 	 * @param serializerKey
-	 * @return true if successful, false otherwise
+	 * @return Observation bundle if successful, null otherwise
 	 */
-	public static boolean uploadObservations(InputStream is, String serializerKey, long revToken) {
-		ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+	public static ObservationBundle uploadObservations(InputStream is, String serializerKey) {
 	
 		ObservationBundle bundle = new ObservationBundle();
+		boolean success = false;
 		try {
 			bundle.read((DataInputStream)is);
+			success = true;
 		} catch (IOException e) {
 			log.error("odkclinic upload failed", e);
-			return false;
 		} catch (InstantiationException e) {
 			log.error("odkclinic upload failed", e);
-			return false;
 		} catch (IllegalAccessException e) {
 			log.error("odkclinic upload failed", e);
-			return false;
-		}
-		ObsService obsService = Context.getObsService();
-		EncounterService encounterService = Context.getEncounterService();
-		UserService userService = Context.getUserService();
-		ConceptService conceptService = Context.getConceptService();
-		
-		Vector<Observation> observations = bundle.getBundle();
-		for (Observation obs : observations) {
-			long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, obs.getEncounterId()).getTime();
-				if (revToken < stateToken) {
-				
-					org.openmrs.Obs inObs = new org.openmrs.Obs();
-					//inObs.setObsId(obs.getObsId());
-					inObs.setEncounter(encounterService.getEncounter(obs.getEncounterId()));
-					inObs.setConcept(conceptService.getConcept(obs.getConceptId()));
-					inObs.setValueText(obs.getText());
-					inObs.setValueDatetime(obs.getDate());
-					inObs.setValueNumeric(obs.getValue());
-					inObs.setDateCreated(obs.getDateCreated());
-				
-				try {
-					obsService.saveObs(inObs, "Changed/added by android phone");
-				} catch (APIException e) {
-					log.error("odkclinic upload failed", e);
-				}
-			}
 		}
 		
-		return true;
+		if (success) 
+		    return bundle;
+		else 
+		    return null;
 	}
+	
+	/**
+	 * Saves given observations to server database.
+	 * @param ob
+	 * @param revToken
+	 * @return true if successful, false otherwise
+	 */
+	public static boolean commitObservations(ObservationBundle ob, long revToken) {
+	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+        ObsService obsService = Context.getObsService();
+        EncounterService encounterService = Context.getEncounterService();
+        ConceptService conceptService = Context.getConceptService();
+        
+        Vector<Observation> observations = ob.getBundle();
+        for (Observation obs : observations) {
+            long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, obs.getEncounterId()).getTime();
+                if (revToken < stateToken) {
+                
+                    org.openmrs.Obs inObs = new org.openmrs.Obs();
+                    //inObs.setObsId(obs.getObsId());
+                    inObs.setEncounter(encounterService.getEncounter(obs.getEncounterId()));
+                    inObs.setConcept(conceptService.getConcept(obs.getConceptId()));
+                    inObs.setValueText(obs.getText());
+                    inObs.setValueDatetime(obs.getDate());
+                    inObs.setValueNumeric(obs.getValue());
+                    inObs.setDateCreated(obs.getDateCreated());
+                
+                try {
+                    obsService.saveObs(inObs, "Changed/added by android phone");
+                } catch (APIException e) {
+                    log.error("odkclinic upload failed", e);
+                }
+            }
+        }
+	    return true;
+	}
+	
 	/**
 	 * Retrieves all observations associated with the given patientId and returns their bundle
 	 * @param patientId

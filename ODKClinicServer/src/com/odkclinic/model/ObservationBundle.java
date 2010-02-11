@@ -8,7 +8,7 @@ import java.util.Vector;
 
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-public class ObservationBundle {
+public class ObservationBundle implements Bundle<Observation>{
 	private Vector<Observation> bundle;
 	
 	public ObservationBundle() {
