@@ -107,8 +107,10 @@ public class ODKClinicServer {
 				
 				responseStatus = ODKClinicConstants.STATUS_SUCCESS;
 			}
-						
 			
+			dos.writeByte(responseStatus);
+			dos.writeLong(AndroidDownloadManager.getLargestRevisionToken()); 
+			dos.flush();
 			//gzip.finish();
 		}
 		catch(Exception ex){

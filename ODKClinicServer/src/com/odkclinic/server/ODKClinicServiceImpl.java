@@ -23,5 +23,9 @@ public class ODKClinicServiceImpl implements ODKClinicService {
 	public Date getRevisionToken(String table, int id) {
 		return tokenDAO.getRevisionToken(table, id);
 	}
+	
+	public long getLargestRevisionToken(String table) {
+	    return tokenDAO.getLargestRevisionToken(table);
+	}
 
 }
