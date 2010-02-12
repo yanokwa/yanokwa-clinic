@@ -16,6 +16,10 @@
 
 package com.odkclinic.client;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
@@ -84,7 +88,17 @@ public class PatientDetails extends ListActivity {
 		mName.setText(patientInfo.getString(patientInfo.getColumnIndexOrThrow(PatientTable.NAME.getName())));
 		mGender.setText(patientInfo.getString(patientInfo.getColumnIndex(PatientTable.GENDER.getName())));
 		mRace.setText(patientInfo.getString(patientInfo.getColumnIndex(PatientTable.RACE.getName())));
-		mBirthDate.setText(patientInfo.getString(patientInfo.getColumnIndex(PatientTable.BIRTHDATE.getName())));
+		String tempDate = patientInfo.getString(patientInfo.getColumnIndex(PatientTable.BIRTHDATE.getName()));
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat df2 = new SimpleDateFormat("MM/dd/yyyy");
+		try
+        {
+            mBirthDate.setText(df2.format(df.parse(tempDate)));
+        } catch (ParseException e)
+        {
+            e.printStackTrace();
+            mBirthDate.setText(tempDate);
+        }
 		Cursor concepts = mDb.getPatientConcepts(mPatientID);
 		startManagingCursor(concepts);
 		SimpleCursorAdapter patients = new SimpleCursorAdapter(this,
