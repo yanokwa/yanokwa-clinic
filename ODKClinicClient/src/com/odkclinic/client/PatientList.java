@@ -21,6 +21,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import android.app.ExpandableListActivity;
 import android.content.Context;
@@ -36,6 +41,7 @@ import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.SimpleCursorTreeAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.odkclinic.client.db.DbAdapter;
@@ -61,6 +67,7 @@ public class PatientList extends ExpandableListActivity {
 	private ExpandableListAdapter mAdapter;
 	private Toast mToast;
 	private SendDataTask mSData;
+	private Context mContext;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -73,6 +80,7 @@ public class PatientList extends ExpandableListActivity {
 		fillData();
 		
 		mToast = Toast.makeText(this, "test", 2);
+		mContext = this;
 	}
 
 	private void fillData() {
@@ -225,10 +233,41 @@ public class PatientList extends ExpandableListActivity {
 			startManagingCursor(patientInfo);
 			return patientInfo;
 		}
+
+        @Override
+        protected void bindChildView(View view, Context context, Cursor cursor,
+                boolean isLastChild)
+        {
+            String tempGender = cursor.getString(0);
+            String tempRace = cursor.getString(1);
+            String tempBDay = cursor.getString(2);
+            
+            if (tempGender != null) {
+                ((TextView) view.findViewById(R.id.patientgender)).setText(tempGender);
+            }
+            if (tempRace != null) {
+                ((TextView) view.findViewById(R.id.patientrace)).setText(tempRace);
+            }
+            if (tempBDay != null) {
+                DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                DateFormat df2 = new SimpleDateFormat("MM/dd/yyyy");
+                try
+                {
+                    Date date = df.parse(tempBDay);
+                    ((TextView) view.findViewById(R.id.patientbirthdate)).setText(df2.format(date));
+                } catch (ParseException e)
+                {
+                    ((TextView) view.findViewById(R.id.patientbirthdate)).setText(tempBDay);
+                    e.printStackTrace();
+                }
+            }
+            
+        }
+		
+		
 	}
 	
-    //TODO change to proper URL
-	public static final String SERVER_URL = "http://10.0.2.2:8080/openmrs/module/xforms/patientDownload.form";
+	public static final String SERVER_URL = "http://10.0.2.2:8080/openmrs/module/ODKClinic";
 	private static final String USER = "admin";
     private static final String PASS = "anKasemar77";
     private static final String SKEY = "null"; //dummy serializer key
@@ -260,8 +299,6 @@ public class PatientList extends ExpandableListActivity {
     private class SendDataTask extends AsyncTask<Void, Void, Void> {
         private boolean fail = true;
         
-        
-        
         @Override
         protected void onPreExecute()
         {
@@ -272,7 +309,11 @@ public class PatientList extends ExpandableListActivity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            DbAdapter db = mDb == null ? new DbAdapter(new MainPage()) : mDb; //just random reference
+            DbAdapter db = mDb; //just random reference
+            if (db == null) {
+                db = new DbAdapter(mContext);
+                db.open();
+            }
             if (db.checkSync()) {
                 return null;
             }
@@ -280,7 +321,6 @@ public class PatientList extends ExpandableListActivity {
             
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
-            long newRevToken = System.currentTimeMillis();
             DataInputStream dis = null;
             DataOutputStream dos = null;
             HttpURLConnection con = null;
@@ -348,27 +388,36 @@ public class PatientList extends ExpandableListActivity {
                 if (success == STATUS_SUCCESS) { 
                     Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
                     
-                    db = db == null ? new DbAdapter(new MainPage()) : db;
+                    if (db == null) {
+                        db = new DbAdapter(mContext);
+                        db.open();
+                    }
                     
                     // Delete the encounters/obs that were sent from client table
                     db.deleteSyncedEncounters(eb);
                     db.deleteSyncedObservations(ob);
                     
                     // Insert bundles into database
-                    db.insertProgramBundle(prb);
-                    db.insertPatientBundle(pb);
-                    db.insertObservationBundle(ob);
-                    db.insertEncounterBundle(eb);
+                    if (prb.getBundle().size() > 0)
+                        db.insertProgramBundle(prb);
+                    
+                    if (pb.getBundle().size() > 0)
+                        db.insertPatientBundle(pb);
+                    
+                    if (ob.getBundle().size() > 0)
+                        db.insertObservationBundle(ob);
+                    
+                    if (eb.getBundle().size() > 0)
+                        db.insertEncounterBundle(eb);
                     
                     // update rev token to new value
-                    db.setRevToken(newRevToken); //TODO check if we get new one from server or not
+                    db.setRevToken(dis.readLong()); 
                     fail = false;
                 } else { // mark the entries in the respective tables and leave them there.
                     Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status Code: %d.", success));
                     db.markEncountersFailed(eb);
                     db.markObservationsFailed(ob);
                 }
-                         
             } catch (IOException e)
             {
                 e.printStackTrace();
@@ -407,8 +456,5 @@ public class PatientList extends ExpandableListActivity {
                 mToast.setText("Synchronization with server has completed.");
             mToast.show();
         }
-        
-        
-    }
-    
+    }    
 }
