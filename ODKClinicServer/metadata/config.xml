@@ -2,7 +2,6 @@
 <!DOCTYPE module PUBLIC "-//OpenMRS//DTD OpenMRS Config 1.2//EN" "http://resources.openmrs.org/doctype/config-1.2.dtd">
 
 <module configVersion="1.2">
-	<!-- Base Module Properties -->
     <id>odkclinic</id>
     <name>ODK Clinic</name>
     <version>0.1</version>
@@ -13,7 +12,7 @@
 	</description>
 	
 	<require_version>1.5.1</require_version>
-	<activator>@MODULE_PACKAGE@.ODKClinicActivator</activator>
+	<activator>com.odkclinic.server.ODKClinicActivator</activator>
 	
 	<servlet>
 		<servlet-name>AndroidServlet</servlet-name>

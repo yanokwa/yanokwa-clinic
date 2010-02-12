@@ -165,7 +165,7 @@ public class AndroidDownloadManager {
         
         for (Encounter enc : encounters) {
             long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId()).getTime();
-            if (revToken < stateToken) {
+            if (revToken > stateToken) {
                 User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
                 org.openmrs.Encounter inEnc = new org.openmrs.Encounter();
                 //inEnc.setEncounterId(enc.getEncounterId());
@@ -261,8 +261,7 @@ public class AndroidDownloadManager {
         Vector<Observation> observations = ob.getBundle();
         for (Observation obs : observations) {
             long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, obs.getEncounterId()).getTime();
-                if (revToken < stateToken) {
-                
+                if (revToken > stateToken) {
                     org.openmrs.Obs inObs = new org.openmrs.Obs();
                     //inObs.setObsId(obs.getObsId());
                     inObs.setEncounter(encounterService.getEncounter(obs.getEncounterId()));
@@ -300,7 +299,6 @@ public class AndroidDownloadManager {
 							null, null, null, null, null, null, null, null, new Date(revToken), null, false);
 					//List<org.openmrs.Obs> obs = obsService.getObservationsByPerson(patient);
 					for (org.openmrs.Obs inObs : obs) {
-
 						Integer obsId = inObs.getObsId();
 						Integer encounterId = inObs.getEncounter().getEncounterId();
 						Integer conceptId = inObs.getConcept().getConceptId();
@@ -349,7 +347,6 @@ public class AndroidDownloadManager {
 			
 			bundle.add(outPat);
 		}
-		
 		return bundle;
 	}
 	
