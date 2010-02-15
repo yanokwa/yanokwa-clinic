@@ -11,12 +11,11 @@
          Server module for Android application "ODK Clinic"
 	</description>
 	
-	<require_version>1.5.1</require_version>
 	<activator>com.odkclinic.server.ODKClinicActivator</activator>
 	
 	<servlet>
-		<servlet-name>AndroidServlet</servlet-name>
-	    <servlet-class>@MODULE_PACKAGE@.web.AndroidServlet</servlet-class>
+		<servlet-name>ODKClinicServer</servlet-name>
+	    <servlet-class>com.odkclinic.server.web.AndroidServlet</servlet-class>
 	</servlet>
 	
 </module>
