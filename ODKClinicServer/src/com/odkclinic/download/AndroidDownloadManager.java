@@ -13,6 +13,7 @@ import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.Cohort;
 import org.openmrs.EncounterType;
 import org.openmrs.Location;
 import org.openmrs.Patient;
@@ -94,8 +95,8 @@ public class AndroidDownloadManager {
 	 * @param serializerKey (no use)
 	 * @return true if successful, false otherwise
 	 */
-	public static boolean downloadEncounters(Integer patientId, OutputStream os, String serializerKey, long revToken) {
-		EncounterBundle bundle = getEncounters(patientId, revToken);
+	public static boolean downloadEncounters(OutputStream os, String serializerKey, long revToken) {
+		EncounterBundle bundle = getEncounters(revToken);
 		
 		try {
 			bundle.write((DataOutputStream)os);
@@ -112,8 +113,8 @@ public class AndroidDownloadManager {
 	 * @param serializerKey (no use)
 	 * @return true if successful, false otherwise
 	 */
-	public static boolean downloadObservations(Integer patientId, OutputStream os, String serializerKey, long revToken) {
-		ObservationBundle bundle = getObservations(patientId, revToken);
+	public static boolean downloadObservations(OutputStream os, String serializerKey, long revToken) {
+		ObservationBundle bundle = getObservations(revToken);
 		
 		try {
 			bundle.write((DataOutputStream)os);
@@ -186,36 +187,36 @@ public class AndroidDownloadManager {
 	 * @param patientId
 	 * @return EncounterBundle with all encounters related to patient
 	 */
-	public static EncounterBundle getEncounters(Integer patientId, long revToken) {
+	public static EncounterBundle getEncounters(long revToken) {
 		EncounterBundle bundle = new EncounterBundle();
-		EncounterService encounterService = Context.getEncounterService();
-		//if (patientIds != null && patientIds.size() > 0) {
-		
-			//for (Integer patientId : patientIds) {
-				PatientService pService = Context.getPatientService();
-				List<org.openmrs.Encounter> encounters = encounterService.getEncounters(pService.getPatient(patientId),
-													null, new Date(revToken), null, null, null, false);
-				//List<org.openmrs.Encounter> encounters = encounterService.getEncountersByPatientId(patientId);
-				for (org.openmrs.Encounter inEncounter : encounters) {
-
-					//Integer encounterId = inEncounter.getEncounterId();
-					Integer encounterId = null;
-					Integer encounterType = inEncounter.getEncounterType().getEncounterTypeId();
-					Integer providerId = inEncounter.getProvider().getUserId();
-					Integer locationId = inEncounter.getLocation().getLocationId();
-					Date dateCreated = inEncounter.getDateCreated();
-					Date dateEncountered = inEncounter.getEncounterDatetime();
-					Integer creator = inEncounter.getCreator().getUserId();
-				
-				
-					com.odkclinic.model.Encounter outEncounter = new Encounter(patientId, encounterId,
-																				encounterType, providerId, locationId,
-																				dateCreated, dateEncountered, creator);
-					bundle.add(outEncounter);
-				
-				}
-			//}
-		//}
+		CohortService cService = Context.getCohortService();
+		Cohort cohort = cService.getCohort(1);
+		if (cohort != null) {
+            Set<Integer> patients = cohort.getPatientIds();
+    		EncounterService encounterService = Context.getEncounterService();
+    		if (patients != null && patients.size() > 0) {
+    		    PatientService pService = Context.getPatientService();
+    			for (Integer patientId : patients) {
+    				List<org.openmrs.Encounter> encounters = encounterService.getEncounters(pService.getPatient(patientId),
+    													null, new Date(revToken), null, null, null, false);
+    				//List<org.openmrs.Encounter> encounters = encounterService.getEncountersByPatientId(patientId);
+    				for (org.openmrs.Encounter inEncounter : encounters) {
+    					Integer encounterId = inEncounter.getEncounterId();
+    					Integer encounterType = inEncounter.getEncounterType().getEncounterTypeId();
+    					Integer providerId = inEncounter.getProvider().getUserId();
+    					Integer locationId = inEncounter.getLocation().getLocationId();
+    					Date dateCreated = inEncounter.getDateCreated();
+    					Date dateEncountered = inEncounter.getEncounterDatetime();
+    					Integer creator = inEncounter.getCreator().getUserId();
+    					com.odkclinic.model.Encounter outEncounter = new Encounter(patientId, encounterId,
+    																				encounterType, providerId, locationId,
+    																				dateCreated, dateEncountered, creator);
+    					bundle.add(outEncounter);
+    				
+    				}
+    			}
+    		}
+		}
 		return bundle;
 	}
 	
@@ -286,38 +287,45 @@ public class AndroidDownloadManager {
 	 * @param patientId
 	 * @return ObservationBundle with all observations related to patient
 	 */
-	public static ObservationBundle getObservations(Integer patientId, long revToken) {
-		ObservationBundle bundle = new ObservationBundle();
-		ObsService obsService = Context.getObsService();
-		PatientService pService = Context.getPatientService();
-		//if (patientIds != null && patientIds.size() > 0) {			
-				//for (Integer patientId : patientIds) {
-					Patient patient = pService.getPatient(patientId);
-					List<Person> person = new ArrayList<Person>();
-					person.add(patient);
-					List<org.openmrs.Obs> obs = obsService.getObservations(person,
-							null, null, null, null, null, null, null, null, new Date(revToken), null, false);
-					//List<org.openmrs.Obs> obs = obsService.getObservationsByPerson(patient);
-					for (org.openmrs.Obs inObs : obs) {
-						Integer obsId = inObs.getObsId();
-						Integer encounterId = inObs.getEncounter().getEncounterId();
-						Integer conceptId = inObs.getConcept().getConceptId();
-						String text = inObs.getValueText();
-						Date date = inObs.getValueDatetime();
-						Double value = inObs.getValueNumeric();
-						Integer creator = inObs.getCreator().getUserId();
-						Date dateCreated = inObs.getDateCreated();
-					
-						Observation outObs = new Observation(obsId, patientId, encounterId,
-																					conceptId, text, date,
-																					value, creator, dateCreated);
-						bundle.add(outObs);
-					
-					}
-				//}
-			//}
-			return bundle;
-	}
+    public static ObservationBundle getObservations(long revToken)
+    {
+        ObservationBundle bundle = new ObservationBundle();
+        ObsService obsService = Context.getObsService();
+        PatientService pService = Context.getPatientService();
+        CohortService cService = Context.getCohortService();
+        Cohort cohort = cService.getCohort(1);
+        if (cohort != null)
+        {
+            Set<Integer> patients = cohort.getPatientIds();
+            for (Integer patientId : patients)
+            {
+                Patient patient = pService.getPatient(patientId);
+                List<Person> person = new ArrayList<Person>();
+                person.add(patient);
+                List<org.openmrs.Obs> obs = obsService
+                        .getObservations(person, null, null, null, null, null, null, null, null, new Date(
+                                revToken), null, false);
+                for (org.openmrs.Obs inObs : obs)
+                {
+                    Integer obsId = inObs.getObsId();
+                    Integer encounterId = inObs.getEncounter().getEncounterId();
+                    Integer conceptId = inObs.getConcept().getConceptId();
+                    String text = inObs.getValueText();
+                    Date date = inObs.getValueDatetime();
+                    Double value = inObs.getValueNumeric();
+                    Integer creator = inObs.getCreator().getUserId();
+                    Date dateCreated = inObs.getDateCreated();
+
+                    Observation outObs = new Observation(obsId, patientId,
+                            encounterId, conceptId, text, date, value, creator,
+                            dateCreated);
+                    bundle.add(outObs);
+
+                }
+            }
+        }
+        return bundle;
+    }
 	
 	/**
 	 * Retrieves all patients associated with the hard-coded bundle and returns their bundle

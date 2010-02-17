@@ -1,5 +1,7 @@
+
 package com.odkclinic.server;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,7 +9,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.fileupload.MultipartStream;
+import org.apache.commons.fileupload.MultipartStream.MalformedStreamException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.api.context.Context;
@@ -17,167 +25,263 @@ import com.odkclinic.download.AndroidDownloadManager;
 import com.odkclinic.model.Bundle;
 import com.odkclinic.model.EncounterBundle;
 import com.odkclinic.model.ObservationBundle;
+import com.odkclinic.server.ODKClinicConstants.Headers;
 
-public class ODKClinicServer {
-	
-	private Log log = LogFactory.getLog(this.getClass());
-	private enum UploadType { Observations, Encounters };
-	/**
-	 * Called to handle data input and output streams, reading requests and writing response
-	 * Modeled after Xforms modules
-	 * 
-	 * @param dis - the stream to read from.
-	 * @param dos - the stream to write to.
-	 */
-	public void handleStreams(DataInputStream dis, DataOutputStream dosParam)
-	throws IOException, Exception {
-		
-		//ZOutputStream gzip = new ZOutputStream(dosParam,JZlib.Z_BEST_COMPRESSION);
-		//DataOutputStream dos = new DataOutputStream(gzip);
-		DataOutputStream dos = dosParam;
+public class ODKClinicServer
+{
 
-		byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
+    private Log log = LogFactory.getLog(this.getClass());
 
-		try{
-			String name = dis.readUTF();
-			String pw = dis.readUTF();
-			String serializerKey = dis.readUTF();
-			long revToken = dis.readLong();
-			
-			Context.openSession();
-			log.debug("Session opened");
-			try{
-				Context.authenticate(name, pw);
-			}
-			catch(ContextAuthenticationException ex){
-				responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
-			}
-			
-			dos.writeByte(responseStatus);
+    private enum UploadType
+    {
+        Observations, Encounters
+    };
 
-			if(responseStatus != ODKClinicConstants.STATUS_ACCESS_DENIED){
-				byte action = dis.readByte();
-				Map<UploadType, Bundle<?>> map = new HashMap<UploadType, Bundle<?>>();
-				
-				do {
-				    Bundle<?> bundle = null;
-				    
-                    if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER) {
-                        bundle = uploadEncounters(dis, serializerKey);
-                        if (bundle != null) {
-                            map.put(UploadType.Encounters, bundle);
-                        } 
-                    } else if(action == ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS) {
-                        bundle = uploadObservations(dis, serializerKey);
-                        if (bundle != null) {
-                            map.put(UploadType.Observations, bundle);
-                        } 
+    private String getString(MultipartStream multipartStream)
+            throws MalformedStreamException, IOException
+    {
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        multipartStream.readBodyData(data);
+        return new String(data.toByteArray());
+    }
+
+    private boolean isNull(Object... d)
+    {
+        for (Object o : d)
+        {
+            if (o == null)
+                return true;
+        }
+        return false;
+    }
+
+    /**
+     * Called to handle data input and output streams, reading requests and
+     * writing response
+     * 
+     * @param request
+     * @param response
+     */
+    @SuppressWarnings("deprecation")
+    public void handleStreams(HttpServletRequest request,
+            HttpServletResponse response) throws IOException, Exception
+    {
+        byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
+        int boundaryIndex = request.getContentType().indexOf("boundary=");
+        byte[] boundary = (request.getContentType().substring(boundaryIndex + 9)).getBytes();
+        MultipartStream multipartStream = new MultipartStream(request.getInputStream(), boundary);
+        boolean nextPart = multipartStream.skipPreamble();
+
+        // for now assume the user, pass, seriazier, and revtoken are passed in
+        // first and in order
+        String user = null, skey = null, pass = null;
+        Long revToken = null;
+        Headers current = Headers.USER;
+        while (nextPart)
+        {
+            String headers = multipartStream.readHeaders();
+            headers = headers.split("name=")[1];
+            headers = headers.trim();
+            headers = headers.substring(1, headers.length() - 1);
+            boolean getOut = false;
+            current = Headers.valueOf(headers);
+            switch (current)
+            {
+                case USER:
+                    user = getString(multipartStream);
+                    break;
+                case PASS:
+                    pass = getString(multipartStream);
+                    break;
+                case SKEY:
+                    skey = getString(multipartStream);
+                    break;
+                case REVTOKEN:
+                    revToken = Long.parseLong(getString(multipartStream));
+                    break;
+                default:
+                    getOut = true;
+                    break;
+            }
+            
+            if (getOut)
+                break;
+            nextPart = multipartStream.readBoundary();
+        }
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        
+        if (isNull(user, skey, pass, revToken))
+        {
+            responseStatus = ODKClinicConstants.STATUS_ERROR;
+        } else
+        {
+            try
+            {
+                Context.openSession();
+                Context.authenticate(user, pass);
+
+                if (responseStatus != ODKClinicConstants.STATUS_ACCESS_DENIED)
+                {
+                    Map<UploadType, Bundle<?>> map = new HashMap<UploadType, Bundle<?>>();
+
+                    while (current == Headers.UPLOAD_ENCOUNTER || 
+                           current == Headers.UPLOAD_OBSERVATION)
+                    {
+                        Bundle<?> bundle = null;
+                        ByteArrayOutputStream data = new ByteArrayOutputStream();
+                        multipartStream.readBodyData(data);
+
+                        switch (current)
+                        {
+                            case UPLOAD_ENCOUNTER:
+                                bundle = uploadEncounters(new DataInputStream(
+                                        new ByteArrayInputStream(data
+                                                .toByteArray())), skey);
+                                if (bundle != null)
+                                {
+                                    map.put(UploadType.Encounters, bundle);
+                                }
+                                break;
+                            case UPLOAD_OBSERVATION:
+                                bundle = uploadObservations(new DataInputStream(
+                                        new ByteArrayInputStream(data
+                                                .toByteArray())), skey);
+                                if (bundle != null)
+                                {
+                                    map.put(UploadType.Observations, bundle);
+                                }
+                                break;
+                        }
+                        String headers = multipartStream.readHeaders();
+                        headers = headers.split("name=")[1];
+                        headers = headers.trim();
+                        headers = headers.substring(1, headers.length() - 1);
+                        current = Headers.valueOf(headers);
                     }
-                    if (bundle == null) {
-                        responseStatus = ODKClinicConstants.STATUS_ERROR;
-                        break;
+
+                    if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
+                    {
+                        // try to commit changes to server database first
+                        if (commitChanges(map, revToken) && 
+                            current == Headers.DOWNLOAD_ACTIONS)
+                        {
+                            String[] actions = getString(multipartStream).split(";");
+                            DataOutputStream dos = new DataOutputStream(baos);
+
+                            for (String action : actions)
+                            {
+                                switch (Headers.valueOf(action))
+                                {
+                                    case DOWNLOAD_ENCOUNTER:
+                                        downloadEncounters(dos, skey, revToken);
+                                        break;
+                                    case DOWNLOAD_PATIENT:
+                                        downloadPatients(dos, skey);
+                                        break;
+                                    case DOWNLOAD_PROGRAM:
+                                        downloadPrograms(dos, skey);
+                                        break;
+                                    case DOWNLOAD_OBSERVATION:
+                                        downloadObservations(dos, skey, revToken);
+                                        break;
+                                }
+                            }
+                        }
                     }
-                    action = dis.readByte();
-                    log.debug("Upload Action:" + action);
-                    
-                    //read until actionbyte changes from upload type
-                } while ((action | ODKClinicConstants.ACTION_ANDROID_UPLOADS) > 0);
-				
-				if(responseStatus == ODKClinicConstants.STATUS_SUCCESS) {
-				    
-				    // try to commit changes to server database first
-				    if (commitChanges(map, revToken)) {
-				        while (action != ODKClinicConstants.ACTION_ANDROID_END) {
-    	                    if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER)
-    	                        downloadEncounters(dis.readInt(), dos, serializerKey, revToken);
-    	                    else if(action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS)
-    	                        downloadObservations(dis.readInt(), dos, serializerKey,revToken);
-    	                    else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS) 
-    	                        downloadPatients(dos, serializerKey);
-    	                    else if (action == ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS)
-    	                        downloadPrograms(dos, serializerKey);
-    	                    
-    	                    action = dis.readByte();
-    	                    log.debug("Action:" + action);
-    	                } 
-				    }
-				}
-				
-				dos.flush();
-				
-				responseStatus = ODKClinicConstants.STATUS_SUCCESS;
-			}
-			
-			dos.writeByte(responseStatus);
-			dos.writeLong(AndroidDownloadManager.getLargestRevisionToken()); 
-			dos.flush();
-			//gzip.finish();
-		}
-		catch(Exception ex){
-			log.error(ex.getMessage(),ex);
-			try{
-				dos.writeByte(ODKClinicConstants.STATUS_ERROR);
-				dos.flush();
-				//gzip.finish();
-			}
-			catch(Exception e){
-				e.printStackTrace();
-			}
-		}
-		finally{
-			Context.closeSession();
-		}
-	}
-	
-	private boolean commitChanges(Map<UploadType, Bundle<?>> map, long revToken) {
-	    for (Map.Entry<UploadType, Bundle<?>> entry: map.entrySet()) {
-	        switch(entry.getKey()) {
-	            case Encounters:
-	                if (!AndroidDownloadManager.commitEncounters((EncounterBundle) entry.getValue(), revToken)) 
-	                    return false;
-	                break;
-	            case Observations:
-	                if (!AndroidDownloadManager.commitObservations((ObservationBundle) entry.getValue(), revToken))
-	                    return false;
-	                break;
-	            default:
-	                return false;
-	        }
-	    }
-	    return true;
-	}
-	
-	private void downloadEncounters(Integer patientId, OutputStream os, String serializerKey, long revToken) throws Exception{
-		
-		AndroidDownloadManager.downloadEncounters(patientId, os, serializerKey, revToken);
+                }
+            } catch (ContextAuthenticationException e)
+            {
+                responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
+            } finally
+            {
+                Context.closeSession();
+                responseStatus = ODKClinicConstants.STATUS_SUCCESS;
+            }
 
-	}
-	
-	private EncounterBundle uploadEncounters(DataInputStream is, String serializerKey) throws IOException {
-	    return AndroidDownloadManager.uploadEncounters(is, serializerKey);
-	}
-	
-	private void downloadObservations(Integer patientId, OutputStream os, String serializerKey, long revToken) throws Exception{
-		
-		AndroidDownloadManager.downloadObservations(patientId, os, serializerKey, revToken);
+        }
 
-	}
-	
-	private ObservationBundle uploadObservations(DataInputStream is, String serializerKey) throws IOException {
+        if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
+        {
+            byte[] bytes = baos.toByteArray();
+            response.getOutputStream().write(bytes);
+            response.getOutputStream().flush();
+            response.setStatus(200);
+        } else
+        {
+            response.setStatus(500);
+        }
+    }
 
-		return AndroidDownloadManager.uploadObservations(is, serializerKey);
-		
-	}
-	
-	private void downloadPatients(DataOutputStream dos, String serializerKey) throws Exception {
-		
-		AndroidDownloadManager.downloadPatients(dos, serializerKey);
-		
-	}
-	
-	private void downloadPrograms(DataOutputStream dos, String serializerKey) throws Exception {
-		
-		AndroidDownloadManager.downloadPrograms(dos, serializerKey);
-		
-	}
+    private boolean commitChanges(Map<UploadType, Bundle<?>> map, long revToken)
+    {
+        for (Map.Entry<UploadType, Bundle<?>> entry : map.entrySet())
+        {
+            switch (entry.getKey())
+            {
+                case Encounters:
+                    if (!AndroidDownloadManager
+                            .commitEncounters((EncounterBundle) entry
+                                    .getValue(), revToken))
+                        return false;
+                    break;
+                case Observations:
+                    if (!AndroidDownloadManager
+                            .commitObservations((ObservationBundle) entry
+                                    .getValue(), revToken))
+                        return false;
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private void downloadEncounters(OutputStream os, String serializerKey,
+            long revToken) throws Exception
+    {
+
+        AndroidDownloadManager.downloadEncounters(os, serializerKey, revToken);
+
+    }
+
+    private EncounterBundle uploadEncounters(DataInputStream is,
+            String serializerKey) throws IOException
+    {
+        return AndroidDownloadManager.uploadEncounters(is, serializerKey);
+    }
+
+    private void downloadObservations(OutputStream os, String serializerKey,
+            long revToken) throws Exception
+    {
+
+        AndroidDownloadManager
+                .downloadObservations(os, serializerKey, revToken);
+
+    }
+
+    private ObservationBundle uploadObservations(DataInputStream is,
+            String serializerKey) throws IOException
+    {
+
+        return AndroidDownloadManager.uploadObservations(is, serializerKey);
+
+    }
+
+    private void downloadPatients(DataOutputStream dos, String serializerKey)
+            throws Exception
+    {
+
+        AndroidDownloadManager.downloadPatients(dos, serializerKey);
+
+    }
+
+    private void downloadPrograms(DataOutputStream dos, String serializerKey)
+            throws Exception
+    {
+
+        AndroidDownloadManager.downloadPrograms(dos, serializerKey);
+
+    }
 }

@@ -5,11 +5,11 @@
 	<bean parent="serviceContext">
 	    <property name="moduleService">
 	        <list>
-	            <value>com.odkclinic.server.ODKClinicService</value> 
+	            <value>@MODULE_PACKAGE@.ODKClinicService</value> 
 	            <bean class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 	                <property name="transactionManager"><ref bean="transactionManager"/></property>
 	                <property name="target">
-	                    <bean class="com.odkclinic.server.ODKClinicServiceImpl">
+	                    <bean class="@MODULE_PACKAGE@.ODKClinicServiceImpl">
 	                        <property name="revisionTokenDAO">
 	                            <bean class="com.odkclinic.db.hibernate.HibernateRevisionTokenDAO">
 	                                <property name="sessionFactory"><ref bean="sessionFactory"/></property> 
