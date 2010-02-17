@@ -26,4 +26,19 @@ public class ODKClinicConstants {
 	/** Not permitted to carry out the requested operation. */
 	public static final byte STATUS_ACCESS_DENIED = 2;
 	
+	public enum Headers
+    {
+        USER, 
+        PASS, 
+        SKEY, 
+        REVTOKEN, 
+        UPLOAD_ENCOUNTER, 
+        UPLOAD_OBSERVATION, 
+        DOWNLOAD_ENCOUNTER, 
+        DOWNLOAD_OBSERVATION, 
+        DOWNLOAD_PATIENT, 
+        DOWNLOAD_CONCEPT, 
+        DOWNLOAD_PROGRAM,
+        DOWNLOAD_ACTIONS;
+    }
 }

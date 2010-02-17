@@ -1,7 +1,5 @@
 package com.odkclinic.server.web;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -16,9 +14,8 @@ import com.odkclinic.server.ODKClinicServer;
 
 public class AndroidServlet extends HttpServlet {
 
-	public static final long serialVersionUID = 123427878377111L;
-	
-	private Log log = LogFactory.getLog(this.getClass());
+    private static final long serialVersionUID = -3165879845083174090L;
+    private Log log = LogFactory.getLog(this.getClass());
 	
 	/**
 	 * This just delegates to the doGet()
@@ -27,10 +24,9 @@ public class AndroidServlet extends HttpServlet {
 		doGet(request,response);
 	}
 	
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try{
-			new ODKClinicServer().handleStreams(new DataInputStream(request.getInputStream()), new DataOutputStream(response.getOutputStream()));
+			new ODKClinicServer().handleStreams(request, response);
 		}
 		catch(Exception e){
 			log.error(e.getMessage(),e);

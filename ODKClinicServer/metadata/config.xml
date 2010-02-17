@@ -5,17 +5,20 @@
     <id>odkclinic</id>
     <name>ODK Clinic</name>
     <version>0.1</version>
-    <package>org.openmrs.module.@MODULE_ID@</package>
+    <package>com.@MODULE_ID@.server</package>
     <author>Owen Kim</author>
 	<description>
          Server module for Android application "ODK Clinic"
 	</description>
 	
-	<activator>com.odkclinic.server.ODKClinicActivator</activator>
+	<activator>@MODULE_PACKAGE@.ODKClinicActivator</activator>
+	
+	 <require_version>1.2.04</require_version>
+     <require_database_version>1.2.04</require_database_version>
 	
 	<servlet>
 		<servlet-name>ODKClinicServer</servlet-name>
-	    <servlet-class>com.odkclinic.server.web.AndroidServlet</servlet-class>
+	    <servlet-class>@MODULE_PACKAGE@.web.AndroidServlet</servlet-class>
 	</servlet>
 	
 </module>
