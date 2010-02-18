@@ -1,36 +1,46 @@
+
 package com.odkclinic.model;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.security.spec.ECFieldF2m;
 import java.util.List;
-import java.util.Vector;
+import java.util.ArrayList;
 
 import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-public class EncounterBundle implements Bundle<Encounter>{
-	private Vector<Encounter> bundle;
-	
-	public EncounterBundle() {
-		bundle = new Vector<Encounter>();
-	}
-	
-	public void add(Encounter element) {
-		bundle.add(element);
-	}
-	
-	public Vector<Encounter> getBundle() {
-		return bundle;
-	}
-	
-	@SuppressWarnings("unchecked")
-	public void read(DataInputStream dis) throws IOException, 
-			InstantiationException, IllegalAccessException {
-		bundle = (Vector<Encounter>)SerializationUtils.read(dis, EncounterBundle.class);
-	}
-	
-	public void write(DataOutputStream dos) throws IOException {
-		SerializationUtils.write(bundle, dos);
-	}
+public class EncounterBundle implements Bundle<Encounter>
+{
+    private List<Encounter> bundle;
+
+    public EncounterBundle()
+    {
+        bundle = new ArrayList<Encounter>();
+    }
+
+    public void add(Encounter element)
+    {
+        bundle.add(element);
+    }
+
+    public ArrayList<Encounter> getBundle()
+    {
+        return (ArrayList<Encounter>) bundle;
+    }
+
+    @SuppressWarnings("unchecked")
+    public void read(DataInputStream dis) throws IOException,
+            InstantiationException, IllegalAccessException
+    {
+        List temp = SerializationUtils.read(dis, Encounter.class);
+        if (temp != null)
+            bundle.addAll(temp);
+    }
+
+    public void write(DataOutputStream dos) throws IOException
+    {
+        SerializationUtils.write(bundle, dos);
+    }
 }

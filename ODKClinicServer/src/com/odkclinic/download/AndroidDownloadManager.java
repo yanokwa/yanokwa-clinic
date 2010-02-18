@@ -63,6 +63,7 @@ public class AndroidDownloadManager {
 		ProgramBundle bundle = getPrograms();
 		
 		try {
+		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS);
 			bundle.write((DataOutputStream)os);			
 		} catch (IOException e) {
 			log.error("odkclinic download failed", e);
@@ -81,6 +82,7 @@ public class AndroidDownloadManager {
 		PatientBundle bundle = getPatients();
 		
 		try {
+		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS);
 			bundle.write((DataOutputStream) os);
 		} catch  (IOException e) {
 			log.error("odkclinic download failed", e);
@@ -99,12 +101,12 @@ public class AndroidDownloadManager {
 		EncounterBundle bundle = getEncounters(revToken);
 		
 		try {
+		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER);
 			bundle.write((DataOutputStream)os);
 		} catch (IOException e) {
 			log.error("odkclinic download failed", e);
 			return false;
 		}
-		
 		return true;
 	}
 	/**
@@ -117,6 +119,7 @@ public class AndroidDownloadManager {
 		ObservationBundle bundle = getObservations(revToken);
 		
 		try {
+		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS);
 			bundle.write((DataOutputStream)os);
 		} catch (IOException e) {
 			log.error("odkclinic download failed", e);
@@ -162,7 +165,7 @@ public class AndroidDownloadManager {
 	    EncounterService encounterService = Context.getEncounterService();
         UserService userService = Context.getUserService();
         
-        Vector<Encounter> encounters = eb.getBundle();
+        List<Encounter> encounters = eb.getBundle();
         
         for (Encounter enc : encounters) {
             long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId()).getTime();
@@ -259,9 +262,9 @@ public class AndroidDownloadManager {
         EncounterService encounterService = Context.getEncounterService();
         ConceptService conceptService = Context.getConceptService();
         
-        Vector<Observation> observations = ob.getBundle();
+        List<Observation> observations = ob.getBundle();
         for (Observation obs : observations) {
-            long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, obs.getEncounterId()).getTime();
+            long stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId()).getTime();
                 if (revToken > stateToken) {
                     org.openmrs.Obs inObs = new org.openmrs.Obs();
                     //inObs.setObsId(obs.getObsId());
