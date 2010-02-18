@@ -50,32 +50,34 @@ public class DbConstants {
     	" INSERT INTO visited(visited_patient_id) VALUES(new.patient_id);" +
     	" END; ",
     	
-    	" CREATE TRIGGER insert_encounter AFTER INSERT ON client_encounter WHEN new.isUpdate = 1" +
+    	" CREATE TRIGGER insert_encounter AFTER INSERT ON client_encounter" +
     	" BEGIN " +
     	" INSERT INTO updates(updates_patient_id,update_name,update_type, update_type_id) VALUES(new.encounter_patient_id, 'New Encounter', 'ENC', new.encounter_id); " +
     	" END; ",
     	
     	" CREATE TRIGGER delete_encounter AFTER DELETE ON client_encounter" +
     	" BEGIN " +
-    	" DELETE FROM updates WHERE updates_encounter_id = old.encounter_id AND update_type = 'ENC'; " +
+    	" DELETE FROM updates WHERE update_type_id = old.encounter_id AND update_type = 'ENC'; " +
     	" END; ",
     	
+    	/*
     	" CREATE TRIGGER delete_failed_encounter AFTER UPDATE ON client_encounter WHEN new.isUpdate=0" +
         " BEGIN " +
         " DELETE FROM updates WHERE updates_encounter_id = old.encounter_id AND update_type = 'ENC'; " +
         " END; ",
+        */
     	
     	" CREATE TRIGGER delete_failed_observation AFTER DELETE ON client_observation" +
     	" BEGIN " +
-    	" DELETE FROM updates WHERE updates_obs_id = old.obs_id AND update_type = 'OBS'; " +
+    	" DELETE FROM updates WHERE update_type_id = old.obs_id AND update_type = 'OBS'; " +
     	" END; ",
-    	
+    	/*
     	" CREATE TRIGGER delete_observation AFTER UPDATE ON client_observation WHEN new.isUpdate = 0" +
         " BEGIN " +
         " DELETE FROM updates WHERE updates_obs_id = old.obs_id AND update_type = 'OBS'; " +
         " END; ",
-    	
-    	" CREATE TRIGGER insert_observation AFTER INSERT ON client_observation WHEN new.isUpdate = 1" +
+    	*/
+    	" CREATE TRIGGER insert_observation AFTER INSERT ON client_observation" +
     	" BEGIN " +
     	" INSERT INTO updates(updates_patient_id,update_name, update_type, update_type_id) VALUES(new.observation_patient_id, 'New Note', 'OBS', new.obs_id); " +
     	" END; "};
