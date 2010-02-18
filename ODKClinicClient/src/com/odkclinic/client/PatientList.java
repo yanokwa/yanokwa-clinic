@@ -16,9 +16,12 @@
 
 package com.odkclinic.client;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
@@ -26,6 +29,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.InputStreamBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 
 import android.app.ExpandableListActivity;
 import android.content.Context;
@@ -260,16 +273,13 @@ public class PatientList extends ExpandableListActivity {
                     ((TextView) view.findViewById(R.id.patientbirthdate)).setText(tempBDay);
                     e.printStackTrace();
                 }
-            }
-            
+            }   
         }
-		
-		
 	}
 	
-	public static final String SERVER_URL = "http://10.0.2.2:8080/openmrs/module/ODKClinic";
+	public static final String SERVER_URL = "http://10.0.2.2:8080/openmrs/moduleServlet/odkclinic/ODKClinicServer";
 	private static final String USER = "admin";
-    private static final String PASS = "anKasemar77";
+    private static final String PASS = "Emmzelv69";
     private static final String SKEY = "null"; //dummy serializer key
     
 	public static final byte ACTION_ANDROID_DOWNLOAD_ENCOUNTER = 1;
@@ -282,13 +292,13 @@ public class PatientList extends ExpandableListActivity {
     
     /** Networking responses */
     /** Problems occured during connection of the request. */
-    public static final byte STATUS_ERROR = 0;
+    public static final int STATUS_ERROR = 500;
     
     /** Request communicated successfully. */
-    public static final byte STATUS_SUCCESS = 1;
+    public static final int STATUS_SUCCESS = 200;
     
     /** Not permitted to carry out the requested operation. */
-    public static final byte STATUS_ACCESS_DENIED = 2;
+    public static final int STATUS_ACCESS_DENIED = 403;
     
 	/**
      * 
@@ -316,76 +326,67 @@ public class PatientList extends ExpandableListActivity {
             }
             if (db.checkSync()) {
                 return null;
-            }
+            } 
             db.markSync(true);
-            
+             
             EncounterBundle eb = db.getEncounterBundle();
             ObservationBundle ob = db.getObservationBundle();
-            DataInputStream dis = null;
-            DataOutputStream dos = null;
             HttpURLConnection con = null;
             try
             {
-                URL url = new URL(SERVER_URL);
-                //Log.d(LOG_TAG, "Starting Connection.");
-                con = (HttpURLConnection)url.openConnection();
-                con.setRequestMethod( "POST" );
-                con.setDoInput( true );
-                con.setDoOutput( true );
-                con.connect();
-                dis = new DataInputStream(con.getInputStream());
-                dos = new DataOutputStream(con.getOutputStream());
+                HttpClient httpclient = new DefaultHttpClient();
+                HttpPost httpost = new HttpPost(SERVER_URL);
+
+                MultipartEntity reqEntity = new MultipartEntity(
+                        HttpMultipartMode.BROWSER_COMPATIBLE);
+                reqEntity.addPart("USER", new StringBody(USER));
+                reqEntity.addPart("PASS", new StringBody(PASS));
+                reqEntity.addPart("SKEY", new StringBody(SKEY));
+                reqEntity.addPart("REVTOKEN", new StringBody(db.getRevToken()+""));
+                byte[] ebBytes = eb.getBytes();
+                reqEntity.addPart("UPLOAD_ENCOUNTER", new InputStreamKnownSizeBody(new ByteArrayInputStream(ebBytes), ebBytes.length, "img/jpeg", "ff"));
+                byte[] obBytes = ob.getBytes();
+                reqEntity.addPart("UPLOAD_OBSERVATION", new InputStreamKnownSizeBody(new ByteArrayInputStream(obBytes), obBytes.length, "img/jpeg", "ff"));
+                reqEntity.addPart("DOWNLOAD_ACTIONS", new StringBody("DOWNLOAD_PROGRAM;DOWNLOAD_PATIENT;DOWNLOAD_ENCOUNTER;DOWNLOAD_OBSERVATION"));
                 
-                // Try to authenticate
-                Log.d(LOG_TAG + "/SendDataTask", String.format("Sending user %s, password %s.", USER, PASS));
-                dos.writeUTF(USER);
-                dos.writeUTF(PASS);
-                dos.writeUTF(SKEY);
-                dos.writeLong(db.getRevToken());
+                httpost.setEntity(reqEntity);
                 
-                // Check if authentication failed
-                byte success = dis.readByte();
-                if (success == STATUS_ACCESS_DENIED){ 
-                    Log.d(LOG_TAG + "/SendDataTask", "Authentication failed.");
-                    return null;
+                HttpResponse response = httpclient.execute(httpost);
+                Log.d(LOG_TAG, response.getStatusLine().toString());
+                HttpEntity he = response.getEntity();
+                DataInputStream dis = new DataInputStream(he.getContent());
+                ProgramBundle prb = new ProgramBundle();
+                PatientBundle pb = new PatientBundle();
+                ObservationBundle secondOb = new ObservationBundle(); 
+                EncounterBundle secondEb = new EncounterBundle();
+                
+                try {
+                    byte x = (byte) dis.read();
+                    do {
+                        switch(x) {
+                            case ACTION_ANDROID_DOWNLOAD_ENCOUNTER:
+                                secondEb.read(dis);
+                                break;
+                            case ACTION_ANDROID_DOWNLOAD_OBS:
+                                secondOb.read(dis);
+                                break;
+                            case ACTION_ANDROID_DOWNLOAD_PROGRAMS:
+                                prb.read(dis);
+                                break;
+                            case ACTION_ANDROID_DOWNLOAD_PATIENTS:
+                                pb.read(dis);
+                                break;
+                        }
+                        x = (byte) dis.read();
+                    } while (x != -1);
+                } catch(EOFException e) {
+                    Log.d(LOG_TAG + "/SendDataTask", "Error in Stream");
+                    e.printStackTrace();
+                } finally {
+                    dis.close();
                 }
                 
-                // Do actions
-                dos.writeByte(ACTION_ANDROID_UPLOAD_ENCOUNTER);
-                eb.write(dos);
-                
-                dos.writeByte(ACTION_ANDROID_UPLOAD_OBS);
-                ob.write(dos);
-                
-                dos.flush();
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_ENCOUNTER);
-                dos.flush();
-                eb = new EncounterBundle();
-                eb.read(dis);
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_OBS);
-                dos.flush();
-                ob = new ObservationBundle();
-                ob.read(dis);
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PATIENTS);
-                dos.flush();
-                PatientBundle pb = new PatientBundle();
-                pb.read(dis);
-                
-                dos.writeByte(ACTION_ANDROID_DOWNLOAD_PROGRAMS);
-                dos.flush();
-                ProgramBundle prb = new ProgramBundle();
-                prb.read(dis);
-                
-                dos.writeByte(ACTION_ANDROID_END);
-                
-                dos.flush();
-                
-                success = dis.readByte();
-                
-                if (success == STATUS_SUCCESS) { 
+                if (response.getStatusLine().getStatusCode() == STATUS_SUCCESS) { 
                     Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
                     
                     if (db == null) {
@@ -398,23 +399,46 @@ public class PatientList extends ExpandableListActivity {
                     db.deleteSyncedObservations(ob);
                     
                     // Insert bundles into database
-                    if (prb.getBundle().size() > 0)
+                    if (prb.getBundle().size() > 0) {
                         db.insertProgramBundle(prb);
-                    
+                        Log.d(LOG_TAG, "GOT NONEMPTY PRB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY PRB");
+                    }
+
                     if (pb.getBundle().size() > 0)
+                    {
                         db.insertPatientBundle(pb);
-                    
-                    if (ob.getBundle().size() > 0)
+                        Log.d(LOG_TAG, "GOT NONEMPTY PB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY PB");
+                    }
+
+                    if (secondOb.getBundle().size() > 0)
+                    {
                         db.insertObservationBundle(ob);
-                    
-                    if (eb.getBundle().size() > 0)
+                        Log.d(LOG_TAG, "GOT NONEMPTY OB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY OB");
+                    }
+
+                    if (secondEb.getBundle().size() > 0)
+                    {
                         db.insertEncounterBundle(eb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY EB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY EB");
+                    }
                     
                     // update rev token to new value
-                    db.setRevToken(dis.readLong()); 
+                    //db.setRevToken(dis.readLong()); 
                     fail = false;
                 } else { // mark the entries in the respective tables and leave them there.
-                    Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status Code: %d.", success));
+                    Log.d(LOG_TAG + "/SendDataTask", String.format("Sending data failed. Status: %s.", response.getStatusLine()));
                     db.markEncountersFailed(eb);
                     db.markObservationsFailed(ob);
                 }
@@ -428,23 +452,27 @@ public class PatientList extends ExpandableListActivity {
             {
                 e.printStackTrace();
             } finally {
-                try
-                { 
-                    if (dis != null)
-                        dis.close();
-                    if (dos != null)
-                        dos.close();
-                    if (con != null)
-                        con.disconnect();
-                } catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
+                if (con != null)
+                    con.disconnect();
+                
                 db.markSync(false);
             } 
             return (Void) null;
         }
+        private class InputStreamKnownSizeBody extends InputStreamBody {
+            private int length;
 
+            public InputStreamKnownSizeBody(final InputStream in, final int length,
+                    final String mimeType, final String filename) {
+                super(in, mimeType, filename);
+                this.length = length;
+            }
+
+            @Override
+            public long getContentLength() {
+                return this.length;
+            }
+        }
         @Override
         protected void onPostExecute(Void result)
         {

@@ -18,8 +18,9 @@ package com.odkclinic.client;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
+
+import com.odkclinic.client.db.DbAdapter;
 
 /**
  * Activity for displaying choice between managing cohorts and patients or viewing
@@ -41,7 +42,10 @@ public class MainPage extends Activity {
 //		Intent i = new Intent(this, ConceptHistory.class);
 //		i.putExtras(extras);
 //		startActivity(i);
-		
+		DbAdapter db = new DbAdapter(this);
+		db.open();
+		db.markSync(false);
+		db.close();
 		Intent i = new Intent(this, PatientList.class);
 		startActivityForResult(i,0);
 	}

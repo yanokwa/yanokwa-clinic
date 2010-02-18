@@ -400,7 +400,7 @@ public class DbAdapter {
     	values.put(ObservationTable.NUMERIC.getName(), o.getValue());
     	values.put(ObservationTable.TEXT.getName(), o.getText());
     	values.put(ObservationTable.BOOLEAN.getName(), o.getValueBoolean());
-    	values.put(ObservationTable.VOIDED.getName(), 0); //TODO Assuming observation not voided
+    	values.put(ObservationTable.VOIDED.getName(), 0); 
     	values.put(ObservationTable.DATE_CREATED.getName(), o.getDateCreated().toString()); //TODO may not work
     	values.put(ObservationTable.DATETIME.getName(), o.getDate().toString());
     	values.put(ObservationTable.CREATOR.getName(), o.getCreator());
@@ -666,6 +666,7 @@ public class DbAdapter {
                     new String[] { SettingsTable.NUMERIC_VALUE.getName() }, 
                     SettingsTable.NAME.getName() + "='REV'", 
                     null, null, null, null);
+        tok.moveToFirst();
         return tok.getLong(0);
     }
     
@@ -679,12 +680,12 @@ public class DbAdapter {
         ContentValues values = new ContentValues();
         values.put(ClientEncounterTable.ISUPDATE.getName(), 0);
         StringBuilder sb = new StringBuilder();
-        sb.append(EncounterTable.ID.getName());
+        sb.append(ClientEncounterTable.ID.getName());
         sb.append("=");
         sb.append(eb.getBundle().get(0).getEncounterId());
         for (int i = 1; i < eb.getBundle().size(); i++) {
             sb.append(" OR ");
-            sb.append(EncounterTable.ID.getName());
+            sb.append(ClientEncounterTable.ID.getName());
             sb.append(" = ");
             sb.append(eb.getBundle().get(i).getEncounterId());
             sb.append(" ");
@@ -696,12 +697,12 @@ public class DbAdapter {
         ContentValues values = new ContentValues();
         values.put(ClientObservationTable.ISUPDATE.getName(), 0);
         StringBuilder sb = new StringBuilder();
-        sb.append(ObservationTable.ID.getName());
+        sb.append(ClientObservationTable.ID.getName());
         sb.append("=");
         sb.append(ob.getBundle().get(0).getObsId());
         for (int i = 1; i < ob.getBundle().size(); i++) {
             sb.append(" OR ");
-            sb.append(ObservationTable.ID.getName());
+            sb.append(ClientObservationTable.ID.getName());
             sb.append(" = ");
             sb.append(ob.getBundle().get(i).getObsId());
             sb.append(" ");
@@ -713,7 +714,7 @@ public class DbAdapter {
         StringBuilder sb = new StringBuilder();
         for (Encounter e: eb.getBundle()) {
             sb.append(" OR ");
-            sb.append(EncounterTable.ID.getName());
+            sb.append(ClientEncounterTable.ID.getName());
             sb.append(" = ");
             sb.append(e.getEncounterId());
             sb.append(" ");
@@ -725,7 +726,7 @@ public class DbAdapter {
         StringBuilder sb = new StringBuilder();
         for (Observation o: ob.getBundle()) {
             sb.append(" OR ");
-            sb.append(ObservationTable.ID.getName());
+            sb.append(ClientObservationTable.ID.getName());
             sb.append(" = ");
             sb.append(o.getObsId());
             sb.append(" ");
