@@ -7,9 +7,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -80,6 +82,7 @@ public class ODKClinicServer
         while (nextPart)
         {
             String headers = multipartStream.readHeaders();
+            headers = headers.split(";")[1];
             headers = headers.split("name=")[1];
             headers = headers.trim();
             headers = headers.substring(1, headers.length() - 1);
@@ -136,8 +139,8 @@ public class ODKClinicServer
                         {
                             case UPLOAD_ENCOUNTER:
                                 bundle = uploadEncounters(new DataInputStream(
-                                        new ByteArrayInputStream(data
-                                                .toByteArray())), skey);
+                                                              new ByteArrayInputStream(data.toByteArray())), 
+                                                          skey);
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Encounters, bundle);
@@ -145,19 +148,23 @@ public class ODKClinicServer
                                 break;
                             case UPLOAD_OBSERVATION:
                                 bundle = uploadObservations(new DataInputStream(
-                                        new ByteArrayInputStream(data
-                                                .toByteArray())), skey);
+                                                                new ByteArrayInputStream(data.toByteArray())), 
+                                                            skey);
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Observations, bundle);
                                 }
                                 break;
                         }
+                        
+                        multipartStream.readBoundary();
                         String headers = multipartStream.readHeaders();
+                        headers = headers.split(";")[1];
                         headers = headers.split("name=")[1];
                         headers = headers.trim();
                         headers = headers.substring(1, headers.length() - 1);
                         current = Headers.valueOf(headers);
+                        
                     }
 
                     if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
@@ -212,7 +219,7 @@ public class ODKClinicServer
             response.setStatus(500);
         }
     }
-
+    
     private boolean commitChanges(Map<UploadType, Bundle<?>> map, long revToken)
     {
         for (Map.Entry<UploadType, Bundle<?>> entry : map.entrySet())
