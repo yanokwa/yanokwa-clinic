@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2009 University of Washington
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
 package com.odkclinic.model;
 
 import java.io.DataInputStream;
@@ -9,6 +25,7 @@ import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
 public class Observation implements Persistent {
+
 	Integer obsId;
 	Integer patientId;
 	Integer conceptId;
@@ -16,6 +33,7 @@ public class Observation implements Persistent {
 	String text;
 	Date date;
 	Double value;
+	Boolean valueBoolean;
 	Integer creator;
 	Date dateCreated;
 
@@ -26,7 +44,7 @@ public class Observation implements Persistent {
 	
 	public Observation(Integer obsId, Integer patientId, Integer encounterId,
 						Integer conceptId, String text, Date date,
-						Double value, Integer creator, Date dateCreated) {
+						Double value, Integer creator, Date dateCreated, Boolean valueBoolean) {
 		this();
 		setObsId(obsId);
 		setPatientId(patientId);
@@ -79,6 +97,13 @@ public class Observation implements Persistent {
 		return text;
 	}
 	
+	public void setValueBoolean(Boolean valueBoolean) {
+		this.valueBoolean = valueBoolean;
+	}
+	public Boolean getValueBoolean() {
+		return valueBoolean;
+	}
+	
 	public Integer getEncounterId() {
 		return encounterId;
 	}
@@ -123,6 +148,7 @@ public class Observation implements Persistent {
 		setValue(Double.valueOf(SerializationUtils.readUTF(dis)));
 		setCreator(SerializationUtils.readInteger(dis));
 		setDateCreated(SerializationUtils.readDate(dis));
+		setValueBoolean(SerializationUtils.readBoolean(dis));
 	}
 
 	public void write(DataOutputStream dos) throws IOException {
@@ -135,6 +161,6 @@ public class Observation implements Persistent {
 		SerializationUtils.writeUTF(dos, getValue().toString());
 		SerializationUtils.writeInteger(dos, getCreator());
 		SerializationUtils.writeDate(dos, getDateCreated());
-		
+		SerializationUtils.writeBoolean(dos, getValueBoolean());
 	}
 }

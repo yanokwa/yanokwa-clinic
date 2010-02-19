@@ -166,19 +166,20 @@ public class AndroidDownloadManager {
         UserService userService = Context.getUserService();
         
         List<Encounter> encounters = eb.getBundle();
-        
+        System.out.println(encounters.size());
         for (Encounter enc : encounters) {
-            long stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId()).getTime();
-            if (revToken > stateToken) {
+            Date stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId());
+            if (stateToken == null || revToken > stateToken.getTime()) {
                 User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
                 org.openmrs.Encounter inEnc = new org.openmrs.Encounter();
-                //inEnc.setEncounterId(enc.getEncounterId());
+                inEnc.setEncounterId(0);
                 inEnc.setEncounterType(new EncounterType(enc.getEncounterType()));
                 inEnc.setProvider(prov);
                 inEnc.setLocation(new Location(enc.getLocationId()));
                 inEnc.setDateCreated(enc.getDateCreated());
                 inEnc.setEncounterDatetime(enc.getDateEncountered());
                 inEnc.setCreator(prov);
+                inEnc.setPatientId(enc.getPatientId());
                 encounterService.saveEncounter(inEnc);
             }
         }
@@ -264,10 +265,10 @@ public class AndroidDownloadManager {
         
         List<Observation> observations = ob.getBundle();
         for (Observation obs : observations) {
-            long stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId()).getTime();
-                if (revToken > stateToken) {
+            Date stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId());
+                if (stateToken == null || revToken > stateToken.getTime()) {
                     org.openmrs.Obs inObs = new org.openmrs.Obs();
-                    //inObs.setObsId(obs.getObsId());
+                    //inObs.setObsId(0);
                     inObs.setEncounter(encounterService.getEncounter(obs.getEncounterId()));
                     inObs.setConcept(conceptService.getConcept(obs.getConceptId()));
                     inObs.setValueText(obs.getText());
@@ -277,7 +278,7 @@ public class AndroidDownloadManager {
                 
                 try {
                     obsService.saveObs(inObs, "Changed/added by android phone");
-                } catch (APIException e) {
+                } catch (Exception e) {
                     log.error("odkclinic upload failed", e);
                 }
             }
@@ -310,18 +311,16 @@ public class AndroidDownloadManager {
                                 revToken), null, false);
                 for (org.openmrs.Obs inObs : obs)
                 {
-                    Integer obsId = inObs.getObsId();
-                    Integer encounterId = inObs.getEncounter().getEncounterId();
-                    Integer conceptId = inObs.getConcept().getConceptId();
-                    String text = inObs.getValueText();
-                    Date date = inObs.getValueDatetime();
-                    Double value = inObs.getValueNumeric();
-                    Integer creator = inObs.getCreator().getUserId();
-                    Date dateCreated = inObs.getDateCreated();
+                    Observation outObs = new Observation();
+                    outObs.setObsId(inObs.getObsId());
+                    outObs.setEncounterId(inObs.getEncounter().getEncounterId());
+                    outObs.setConceptId(inObs.getConcept().getConceptId());
+                    outObs.setText(inObs.getValueText());
+                    outObs.setDate(inObs.getValueDatetime());
+                    outObs.setValue(inObs.getValueNumeric());
+                    //outObs.setUinObs.getCreator().getUserId();
+                    outObs.setDateCreated(inObs.getDateCreated());
 
-                    Observation outObs = new Observation(obsId, patientId,
-                            encounterId, conceptId, text, date, value, creator,
-                            dateCreated);
                     bundle.add(outObs);
 
                 }
