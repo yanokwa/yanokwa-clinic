@@ -100,8 +100,8 @@ public class Patient implements Persistent {
 		setBirth(SerializationUtils.readDate(dis));
 		setDead(SerializationUtils.readInteger(dis));
 		setBirthplace(SerializationUtils.readUTF(dis));
-		setHeight(SerializationUtils.readDouble(dis));
-		setWeight(SerializationUtils.readDouble(dis));
+		//setHeight(SerializationUtils.readDouble(dis));
+		//setWeight(SerializationUtils.readDouble(dis));
 		setName(SerializationUtils.readUTF(dis));
 	}
 
@@ -113,8 +113,8 @@ public class Patient implements Persistent {
 		SerializationUtils.writeDate(dos, getBirth());
 		SerializationUtils.writeInteger(dos, getDead());
 		SerializationUtils.writeUTF(dos, getBirthplace());
-		SerializationUtils.writeDouble(dos, getHeight());
-		SerializationUtils.writeDouble(dos, getWeight());
+		//SerializationUtils.writeDouble(dos, getHeight());
+		//SerializationUtils.writeDouble(dos, getWeight());
 		SerializationUtils.writeUTF(dos, getName());
 	}
 

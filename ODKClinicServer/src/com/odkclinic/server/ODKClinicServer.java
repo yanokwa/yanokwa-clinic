@@ -7,11 +7,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.EnumMap;
 import java.util.Map;
-import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,8 +66,9 @@ public class ODKClinicServer
             HttpServletResponse response) throws IOException, Exception
     {
         byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
-        int boundaryIndex = request.getContentType().indexOf("boundary=");
-        byte[] boundary = (request.getContentType().substring(boundaryIndex + 9)).getBytes();
+        int boundaryIndex = request.getContentType().indexOf("boundary=") + 9;
+        System.out.println(request.getContentType());
+        byte[] boundary = (request.getContentType().substring(boundaryIndex)).getBytes();
         MultipartStream multipartStream = new MultipartStream(request.getInputStream(), boundary);
         boolean nextPart = multipartStream.skipPreamble();
 
@@ -88,6 +86,7 @@ public class ODKClinicServer
             headers = headers.substring(1, headers.length() - 1);
             boolean getOut = false;
             current = Headers.valueOf(headers);
+            System.out.println(headers);
             switch (current)
             {
                 case USER:
@@ -117,6 +116,7 @@ public class ODKClinicServer
         if (isNull(user, skey, pass, revToken))
         {
             responseStatus = ODKClinicConstants.STATUS_ERROR;
+            System.out.println("Failed gettings parts from multipart stream: Element is null");
         } else
         {
             try
@@ -126,7 +126,7 @@ public class ODKClinicServer
 
                 if (responseStatus != ODKClinicConstants.STATUS_ACCESS_DENIED)
                 {
-                    Map<UploadType, Bundle<?>> map = new HashMap<UploadType, Bundle<?>>();
+                    Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(UploadType.class);
 
                     while (current == Headers.UPLOAD_ENCOUNTER || 
                            current == Headers.UPLOAD_OBSERVATION)
@@ -200,12 +200,12 @@ public class ODKClinicServer
             } catch (ContextAuthenticationException e)
             {
                 responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
+                e.printStackTrace();
             } finally
             {
                 Context.closeSession();
                 responseStatus = ODKClinicConstants.STATUS_SUCCESS;
             }
-
         }
 
         if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)

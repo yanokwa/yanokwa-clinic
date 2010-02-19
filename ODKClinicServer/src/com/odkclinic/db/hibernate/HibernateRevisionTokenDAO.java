@@ -31,6 +31,15 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
         {
             date = (Date) sessionFactory.getCurrentSession()
                     .createSQLQuery(sql).uniqueResult();
+            if (date == null) {
+                sql = "select date_created from encounter where encounter_id = " + id;
+                date = (Date) sessionFactory.getCurrentSession().createSQLQuery(sql).uniqueResult();
+                if (date != null) {
+                    putRevisionToken(table, id, date);
+                    return date;
+                } else 
+                    log.error("Date is null.");
+            }
         } catch (Exception e)
         {
             log.error("query for rev token fail", e);
@@ -38,7 +47,12 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
 
         return date;
     }
-
+    
+    private void putRevisionToken(String table, int id, Date date) {
+        String sql = "INSERT INTO "+ table +"(id, revision_token) VALUES ("+ id +", " + date.getTime() + ");";
+        sessionFactory.getCurrentSession().createSQLQuery(sql);
+    }
+    
     @Override
     public long getLargestRevisionToken(String table)
     {
