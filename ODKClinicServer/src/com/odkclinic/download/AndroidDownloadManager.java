@@ -164,7 +164,7 @@ public class AndroidDownloadManager {
 	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
 	    EncounterService encounterService = Context.getEncounterService();
         UserService userService = Context.getUserService();
-        
+        boolean success = true;
         List<Encounter> encounters = eb.getBundle();
         System.out.println(encounters.size());
         for (Encounter enc : encounters) {
@@ -177,13 +177,19 @@ public class AndroidDownloadManager {
                 inEnc.setProvider(prov);
                 inEnc.setLocation(new Location(enc.getLocationId()));
                 inEnc.setDateCreated(enc.getDateCreated());
-                inEnc.setEncounterDatetime(enc.getDateEncountered());
+                inEnc.setEncounterDatetime(enc.getDateEncountered() == null ? new Date() : enc.getDateEncountered());
                 inEnc.setCreator(prov);
                 inEnc.setPatientId(enc.getPatientId());
-                encounterService.saveEncounter(inEnc);
+                try {
+                    encounterService.saveEncounter(inEnc);
+                } catch (Exception e) {
+                    log.error("Failed committing encounter.");
+                    success = false;
+                    break;
+                }
             }
         }
-	    return true;
+	    return success;
 	}
 	
 	/**
@@ -262,7 +268,8 @@ public class AndroidDownloadManager {
         ObsService obsService = Context.getObsService();
         EncounterService encounterService = Context.getEncounterService();
         ConceptService conceptService = Context.getConceptService();
-        
+        PatientService patientService = Context.getPatientService();
+        boolean success = true;
         List<Observation> observations = ob.getBundle();
         for (Observation obs : observations) {
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId());
@@ -271,19 +278,23 @@ public class AndroidDownloadManager {
                     //inObs.setObsId(0);
                     inObs.setEncounter(encounterService.getEncounter(obs.getEncounterId()));
                     inObs.setConcept(conceptService.getConcept(obs.getConceptId()));
+                    inObs.setObsDatetime(obs.getDateCreated() == null ? new Date() : obs.getDateCreated());
                     inObs.setValueText(obs.getText());
                     inObs.setValueDatetime(obs.getDate());
                     inObs.setValueNumeric(obs.getValue());
-                    inObs.setDateCreated(obs.getDateCreated());
-                
+                    inObs.setDateCreated(obs.getDateCreated() == null ? new Date() : obs.getDateCreated());
+                    inObs.setPerson(patientService.getPatient(obs.getPatientId()));
                 try {
-                    obsService.saveObs(inObs, "Changed/added by android phone");
+                    obsService.createObs(inObs);
+                    //obsService.saveObs(inObs, "Changed/added by android phone");
                 } catch (Exception e) {
                     log.error("odkclinic upload failed", e);
+                    success = false;
+                    break;
                 }
             }
         }
-	    return true;
+	    return success;
 	}
 	
 	/**

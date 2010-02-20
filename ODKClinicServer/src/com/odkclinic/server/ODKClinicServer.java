@@ -122,9 +122,18 @@ public class ODKClinicServer
             try
             {
                 Context.openSession();
-                Context.authenticate(user, pass);
+                try
+                {
+                    Context.authenticate(user, pass);
+                } catch (ContextAuthenticationException e)
+                {
+                    responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    responseStatus = ODKClinicConstants.STATUS_ERROR;
+                }
 
-                if (responseStatus != ODKClinicConstants.STATUS_ACCESS_DENIED)
+                if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                 {
                     Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(UploadType.class);
 
@@ -194,17 +203,15 @@ public class ODKClinicServer
                                         break;
                                 }
                             }
+                        } else {
+                            responseStatus = ODKClinicConstants.STATUS_ERROR;
                         }
                     }
                 }
-            } catch (ContextAuthenticationException e)
-            {
-                responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
-                e.printStackTrace();
-            } finally
+            }  finally
             {
                 Context.closeSession();
-                responseStatus = ODKClinicConstants.STATUS_SUCCESS;
+                
             }
         }
 
