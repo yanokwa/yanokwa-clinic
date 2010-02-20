@@ -6,7 +6,7 @@
     <name>ODK Clinic</name>
     <version>0.1</version>
     <package>com.@MODULE_ID@.server</package>
-    <author>Owen Kim</author>
+    <author>UW ICTD</author>
 	<description>
          Server module for Android application "ODK Clinic"
 	</description>
