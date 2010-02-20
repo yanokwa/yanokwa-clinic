@@ -17,6 +17,7 @@
 package com.odkclinic.client;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -282,13 +283,16 @@ public class PatientList extends ExpandableListActivity {
     private static final String PASS = "Emmzelv69";
     private static final String SKEY = "null"; //dummy serializer key
     
-	public static final byte ACTION_ANDROID_DOWNLOAD_ENCOUNTER = 1;
-    public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 2;
-    public static final byte ACTION_ANDROID_DOWNLOAD_OBS = 3;
-    public static final byte ACTION_ANDROID_UPLOAD_OBS = 4;
-    public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 5;
-    public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 6;
-    public static final byte ACTION_ANDROID_END = 45;
+    /** Actions for Android ODK app */
+    public static final byte ACTION_ANDROID_DOWNLOAD_ENCOUNTER = 1;
+    public static final byte ACTION_ANDROID_DOWNLOAD_OBS = 2;
+    public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 4;
+    public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 8;
+    public static final byte ACTION_ANDROID_DOWNLOADS = 15;
+    public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 16;
+    public static final byte ACTION_ANDROID_UPLOAD_OBS = 32;
+    public static final byte ACTION_ANDROID_UPLOADS = 48;
+    public static final byte ACTION_ANDROID_END = 64;
     
     /** Networking responses */
     /** Problems occured during connection of the request. */
@@ -353,41 +357,51 @@ public class PatientList extends ExpandableListActivity {
                 
                 HttpResponse response = httpclient.execute(httpost);
                 Log.d(LOG_TAG, response.getStatusLine().toString());
-                HttpEntity he = response.getEntity();
-                DataInputStream dis = new DataInputStream(he.getContent());
-                ProgramBundle prb = new ProgramBundle();
-                PatientBundle pb = new PatientBundle();
-                ObservationBundle secondOb = new ObservationBundle(); 
-                EncounterBundle secondEb = new EncounterBundle();
-                
-                try {
-                    byte x = (byte) dis.read();
-                    do {
-                        switch(x) {
-                            case ACTION_ANDROID_DOWNLOAD_ENCOUNTER:
-                                secondEb.read(dis);
-                                break;
-                            case ACTION_ANDROID_DOWNLOAD_OBS:
-                                secondOb.read(dis);
-                                break;
-                            case ACTION_ANDROID_DOWNLOAD_PROGRAMS:
-                                prb.read(dis);
-                                break;
-                            case ACTION_ANDROID_DOWNLOAD_PATIENTS:
-                                pb.read(dis);
-                                break;
-                        }
-                        x = (byte) dis.read();
-                    } while (x != -1);
-                } catch(EOFException e) {
-                    Log.d(LOG_TAG + "/SendDataTask", "Error in Stream");
-                    e.printStackTrace();
-                } finally {
-                    dis.close();
-                }
                 
                 if (response.getStatusLine().getStatusCode() == STATUS_SUCCESS) { 
                     Log.d(LOG_TAG + "/SendDataTask", "Sending data successfull");
+                    
+                    
+                    HttpEntity he = response.getEntity();
+                    DataInputStream dis = new DataInputStream(he.getContent());
+                    ProgramBundle prb = new ProgramBundle();
+                    PatientBundle pb = new PatientBundle();
+                    ObservationBundle secondOb = new ObservationBundle(); 
+                    EncounterBundle secondEb = new EncounterBundle();
+                    boolean success = false;
+                    
+                    try {
+                        
+                        int x = dis.read();
+                        do {
+                            switch(x) {
+                                case ACTION_ANDROID_DOWNLOAD_ENCOUNTER:
+                                    secondEb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_OBS:
+                                    secondOb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_PROGRAMS:
+                                    prb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_PATIENTS:
+                                    pb.read(dis);
+                                    break;
+                            }
+                            x = dis.read();
+                        } while (x != -1);
+                        success = true;
+                    } catch(EOFException e) {
+                        Log.d(LOG_TAG + "/SendDataTask", "Error in Stream");
+                        e.printStackTrace();
+                    } finally {
+                        dis.close();
+                    }
+                    
+                    if (!success) {
+                        fail = true;
+                        return (Void) null;
+                    }
                     
                     if (db == null) {
                         db = new DbAdapter(mContext);
@@ -483,6 +497,9 @@ public class PatientList extends ExpandableListActivity {
             } else 
                 mToast.setText("Synchronization with server has completed.");
             mToast.show();
+            if (mDb != null) {
+                fillData();
+            }
         }
     }    
 }

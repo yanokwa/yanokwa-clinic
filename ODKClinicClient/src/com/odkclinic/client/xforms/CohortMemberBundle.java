@@ -8,36 +8,37 @@ import java.util.List;
 
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-public class PatientBundle
+public class CohortMemberBundle
 {
-    private List<Patient> bundle;
+    private List<CohortMember> bundle;
 
-    public PatientBundle()
+    public CohortMemberBundle()
     {
-        bundle = new ArrayList<Patient>();
+        bundle = new ArrayList<CohortMember>();
     }
 
-    public void add(Patient element)
+    public void add(CohortMember element)
     {
         bundle.add(element);
     }
 
-    public ArrayList<Patient> getBundle()
+    public ArrayList<CohortMember> getBundle()
     {
-        return (ArrayList<Patient>) bundle;
+        return (ArrayList<CohortMember>) bundle;
     }
 
     @SuppressWarnings("unchecked")
     public void read(DataInputStream dis) throws IOException,
             InstantiationException, IllegalAccessException
     {
-        List temp = SerializationUtils.read(dis, Patient.class);
+        List temp = SerializationUtils.read(dis, CohortMember.class);
         if (temp != null)
-            bundle.addAll(temp);
+            bundle = (ArrayList<CohortMember>) temp;
     }
 
     public void write(DataOutputStream dos) throws IOException
     {
         SerializationUtils.write(bundle, dos);
     }
+
 }
