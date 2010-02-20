@@ -18,22 +18,22 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 public class Cohort implements Persistent
 {
-    private int cohortId;
+    private Integer cohortId;
     private String cohortName;
     private String cohortDesc;
-    private int creator;
+    private Integer creator;
     private Date dateCreated;
 
     public Cohort()
     {
     }
 
-    public int getCohortId()
+    public Integer getCohortId()
     {
         return cohortId;
     }
 
-    public void setCohortId(int cohortId)
+    public void setCohortId(Integer cohortId)
     {
         this.cohortId = cohortId;
     }
@@ -58,12 +58,12 @@ public class Cohort implements Persistent
         this.cohortDesc = cohortDesc;
     }
 
-    public int getCreator()
+    public Integer getCreator()
     {
         return creator;
     }
 
-    public void setCreator(int creator)
+    public void setCreator(Integer creator)
     {
         this.creator = creator;
     }

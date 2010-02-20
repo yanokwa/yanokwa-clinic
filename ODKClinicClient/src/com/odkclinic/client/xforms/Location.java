@@ -14,18 +14,18 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 public class Location implements Persistent
 {   
-    private int locationId;
+    private Integer locationId;
     private String name;
     private String desc;
-    private int creator;
+    private Integer creator;
     private Date dateCreated;
 
-    public int getLocationId()
+    public Integer getLocationId()
     {
         return locationId;
     }
 
-    public void setLocationId(int locationId)
+    public void setLocationId(Integer locationId)
     {
         this.locationId = locationId;
     }
@@ -50,12 +50,12 @@ public class Location implements Persistent
         this.desc = desc;
     }
 
-    public int getCreator()
+    public Integer getCreator()
     {
         return creator;
     }
 
-    public void setCreator(int creator)
+    public void setCreator(Integer creator)
     {
         this.creator = creator;
     }

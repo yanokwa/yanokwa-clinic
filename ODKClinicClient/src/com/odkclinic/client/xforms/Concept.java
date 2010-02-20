@@ -18,39 +18,39 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 public class Concept implements Persistent
 {
-    private int conceptId;
-    private int classId;
-    private boolean isSet;
-    private int datatypeId;
-    private boolean isRetired;
-    private int creator;
+    private Integer conceptId;
+    private Integer classId;
+    private Boolean isSet;
+    private Integer datatypeId;
+    private Boolean isRetired;
+    private Integer creator;
     private Date dateCreated;
 
     public Concept()
     {
     }
 
-    public int getConceptId()
+    public Integer getConceptId()
     {
         return conceptId;
     }
 
-    public void setConceptId(int conceptId)
+    public void setConceptId(Integer conceptId)
     {
         this.conceptId = conceptId;
     }
 
-    public int getClassId()
+    public Integer getClassId()
     {
         return classId;
     }
 
-    public void setClassId(int classId)
+    public void setClassId(Integer classId)
     {
         this.classId = classId;
     }
 
-    public boolean getIsSet()
+    public Boolean getIsSet()
     {
         return isSet;
     }
@@ -60,32 +60,32 @@ public class Concept implements Persistent
         this.isSet = boolean1;
     }
 
-    public int getDatatypeId()
+    public Integer getDatatypeId()
     {
         return datatypeId;
     }
 
-    public void setDatatypeId(int datatypeId)
+    public void setDatatypeId(Integer datatypeId)
     {
         this.datatypeId = datatypeId;
     }
 
-    public boolean isRetired()
+    public Boolean isRetired()
     {
         return isRetired;
     }
 
-    public void setRetired(boolean isRetired)
+    public void setRetired(Boolean isRetired)
     {
         this.isRetired = isRetired;
     }
 
-    public int getCreator()
+    public Integer getCreator()
     {
         return creator;
     }
 
-    public void setCreator(int creator)
+    public void setCreator(Integer creator)
     {
         this.creator = creator;
     }
