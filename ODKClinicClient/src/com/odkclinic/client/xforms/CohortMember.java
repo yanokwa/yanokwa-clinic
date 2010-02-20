@@ -15,29 +15,29 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 public class CohortMember implements Persistent
 {
-    public int cohortId;
-    public int patientId;
+    public Integer cohortId;
+    public Integer patientId;
 
     public CohortMember()
     {
     }
 
-    public int getCohortId()
+    public Integer getCohortId()
     {
         return cohortId;
     }
 
-    public void setCohortId(int cohortId)
+    public void setCohortId(Integer cohortId)
     {
         this.cohortId = cohortId;
     }
 
-    public int getPatientId()
+    public Integer getPatientId()
     {
         return patientId;
     }
 
-    public void setPatientId(int patientId)
+    public void setPatientId(Integer patientId)
     {
         this.patientId = patientId;
     }
