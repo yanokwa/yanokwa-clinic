@@ -68,8 +68,10 @@ public class ODKClinicServer
         byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
         int boundaryIndex = request.getContentType().indexOf("boundary=") + 9;
         System.out.println(request.getContentType());
-        byte[] boundary = (request.getContentType().substring(boundaryIndex)).getBytes();
-        MultipartStream multipartStream = new MultipartStream(request.getInputStream(), boundary);
+        byte[] boundary = (request.getContentType().substring(boundaryIndex))
+                .getBytes();
+        MultipartStream multipartStream = new MultipartStream(request
+                .getInputStream(), boundary);
         boolean nextPart = multipartStream.skipPreamble();
 
         // for now assume the user, pass, seriazier, and revtoken are passed in
@@ -105,18 +107,19 @@ public class ODKClinicServer
                     getOut = true;
                     break;
             }
-            
+
             if (getOut)
                 break;
             nextPart = multipartStream.readBoundary();
         }
-        
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        
+
         if (isNull(user, skey, pass, revToken))
         {
             responseStatus = ODKClinicConstants.STATUS_ERROR;
-            System.out.println("Failed gettings parts from multipart stream: Element is null");
+            System.out
+                    .println("Failed gettings parts from multipart stream: Element is null");
         } else
         {
             try
@@ -129,16 +132,18 @@ public class ODKClinicServer
                 {
                     responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
                     e.printStackTrace();
-                } catch (Exception e) {
+                } catch (Exception e)
+                {
                     responseStatus = ODKClinicConstants.STATUS_ERROR;
                 }
 
                 if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                 {
-                    Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(UploadType.class);
+                    Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(
+                            UploadType.class);
 
-                    while (current == Headers.UPLOAD_ENCOUNTER || 
-                           current == Headers.UPLOAD_OBSERVATION)
+                    while (current == Headers.UPLOAD_ENCOUNTER
+                            || current == Headers.UPLOAD_OBSERVATION)
                     {
                         Bundle<?> bundle = null;
                         ByteArrayOutputStream data = new ByteArrayOutputStream();
@@ -148,8 +153,8 @@ public class ODKClinicServer
                         {
                             case UPLOAD_ENCOUNTER:
                                 bundle = uploadEncounters(new DataInputStream(
-                                                              new ByteArrayInputStream(data.toByteArray())), 
-                                                          skey);
+                                        new ByteArrayInputStream(data
+                                                .toByteArray())), skey);
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Encounters, bundle);
@@ -157,15 +162,15 @@ public class ODKClinicServer
                                 break;
                             case UPLOAD_OBSERVATION:
                                 bundle = uploadObservations(new DataInputStream(
-                                                                new ByteArrayInputStream(data.toByteArray())), 
-                                                            skey);
+                                        new ByteArrayInputStream(data
+                                                .toByteArray())), skey);
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Observations, bundle);
                                 }
                                 break;
                         }
-                        
+
                         multipartStream.readBoundary();
                         String headers = multipartStream.readHeaders();
                         headers = headers.split(";")[1];
@@ -173,16 +178,17 @@ public class ODKClinicServer
                         headers = headers.trim();
                         headers = headers.substring(1, headers.length() - 1);
                         current = Headers.valueOf(headers);
-                        
+
                     }
 
                     if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                     {
                         // try to commit changes to server database first
-                        if (commitChanges(map, revToken) && 
-                            current == Headers.DOWNLOAD_ACTIONS)
+                        if (commitChanges(map, revToken)
+                                && current == Headers.DOWNLOAD_ACTIONS)
                         {
-                            String[] actions = getString(multipartStream).split(";");
+                            String[] actions = getString(multipartStream)
+                                    .split(";");
                             DataOutputStream dos = new DataOutputStream(baos);
 
                             for (String action : actions)
@@ -201,32 +207,54 @@ public class ODKClinicServer
                                     case DOWNLOAD_OBSERVATION:
                                         downloadObservations(dos, skey, revToken);
                                         break;
+                                    case DOWNLOAD_LOCATION:
+                                        downloadLocations(dos, skey);
+                                        break;
+                                    case DOWNLOAD_PATIENTPROGRAM:
+                                        downloadPatientPrograms(dos, skey);
+                                        break;
+                                    case DOWNLOAD_CONCEPTNAME:
+                                        downloadConceptNames(dos, skey);
+                                        break;
+                                    case DOWNLOAD_COHORT:
+                                        downloadCohorts(dos, skey);
+                                        break;
+                                    case DOWNLOAD_COHORTMEMBER:
+                                        downloadCohortMembers(dos, skey);
+                                        break;
+                                    case DOWNLOAD_CONCEPT:
+                                        downloadConcepts(dos, skey);
+                                        break;
                                 }
                             }
-                        } else {
+                        } else
+                        {
                             responseStatus = ODKClinicConstants.STATUS_ERROR;
                         }
                     }
                 }
-            }  finally
+            } finally
             {
                 Context.closeSession();
-                
+
             }
         }
 
         if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
         {
-            byte[] bytes = baos.toByteArray();
-            response.getOutputStream().write(bytes);
-            response.getOutputStream().flush();
             response.setStatus(200);
+            byte[] bytes = baos.toByteArray();
+            OutputStream os = response.getOutputStream();
+            System.out.println(bytes.length);
+            os.write(bytes);
+            os.flush();
+            os.close();
         } else
         {
             response.setStatus(500);
         }
     }
-    
+
     private boolean commitChanges(Map<UploadType, Bundle<?>> map, long revToken)
     {
         for (Map.Entry<UploadType, Bundle<?>> entry : map.entrySet())
@@ -298,4 +326,29 @@ public class ODKClinicServer
         AndroidDownloadManager.downloadPrograms(dos, serializerKey);
 
     }
+    
+    private void downloadConcepts(DataOutputStream dos,String serializerKey) {
+        AndroidDownloadManager.downloadConcepts(dos, serializerKey);
+    }
+    
+    private void downloadConceptNames(DataOutputStream dos,String serializerKey) {
+        AndroidDownloadManager.downloadConceptNames(dos, serializerKey);
+    }
+    
+    private void downloadCohorts(DataOutputStream dos,String serializerKey) {
+        AndroidDownloadManager.downloadCohorts(dos, serializerKey);
+    }
+    
+    private void downloadCohortMembers(DataOutputStream dos,String serializerKey) {
+        AndroidDownloadManager.downloadCohortMembers(dos, serializerKey);
+    }
+    
+    private void downloadLocations(DataOutputStream dos,String serializerKey) {
+        AndroidDownloadManager.downloadLocations(dos, serializerKey);
+    }
+    
+    private void downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
+        AndroidDownloadManager.downloadPatientPrograms(dos, serializerKey);
+    }
+
 }

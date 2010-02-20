@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -18,22 +17,33 @@ import org.openmrs.EncounterType;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.Person;
+import org.openmrs.Program;
 import org.openmrs.User;
-import org.openmrs.api.APIException;
 import org.openmrs.api.CohortService;
 import org.openmrs.api.ConceptService;
 import org.openmrs.api.EncounterService;
+import org.openmrs.api.LocationService;
 import org.openmrs.api.ObsService;
 import org.openmrs.api.PatientService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 
+import com.odkclinic.model.CohortBundle;
+import com.odkclinic.model.CohortMember;
+import com.odkclinic.model.CohortMemberBundle;
+import com.odkclinic.model.Concept;
+import com.odkclinic.model.ConceptBundle;
+import com.odkclinic.model.ConceptName;
+import com.odkclinic.model.ConceptNameBundle;
 import com.odkclinic.model.Encounter;
 import com.odkclinic.model.EncounterBundle;
+import com.odkclinic.model.LocationBundle;
 import com.odkclinic.model.Observation;
 import com.odkclinic.model.ObservationBundle;
 import com.odkclinic.model.PatientBundle;
+import com.odkclinic.model.PatientProgram;
+import com.odkclinic.model.PatientProgramBundle;
 import com.odkclinic.model.ProgramBundle;
 import com.odkclinic.server.ODKClinicConstants;
 import com.odkclinic.server.ODKClinicService;
@@ -128,6 +138,83 @@ public class AndroidDownloadManager {
 		
 		return true;
 	}
+	
+	public static boolean downloadConcepts(OutputStream os, String serializerKey) {
+	    ConceptBundle bundle = getConcepts();
+        try {
+            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS);
+            bundle.write((DataOutputStream)os);
+        } catch (IOException e) {
+            log.error("odkclinic download failed", e);
+            return false;
+        }
+        
+        return true;
+	}
+	public static boolean downloadPatientPrograms(OutputStream os, String serializerKey) {
+        PatientProgramBundle bundle = getPatientPrograms();
+        try {
+            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS);
+            bundle.write((DataOutputStream)os);
+        } catch (IOException e) {
+            log.error("odkclinic download failed", e);
+            return false;
+        }
+        
+        return true;
+    }
+	
+	public static boolean downloadLocations(OutputStream os, String serializerKey) {
+        LocationBundle bundle = getLocations();
+        try {
+            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS);
+            bundle.write((DataOutputStream)os);
+        } catch (IOException e) {
+            log.error("odkclinic download failed", e);
+            return false;
+        }
+        
+        return true;
+    }
+	
+	public static boolean downloadConceptNames(OutputStream os, String serializerKey) {
+        ConceptNameBundle bundle = getConceptNames();
+        try {
+            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES);
+            bundle.write((DataOutputStream)os);
+        } catch (IOException e) {
+            log.error("odkclinic download failed", e);
+            return false;
+        }
+        
+        return true;
+    }
+	
+	public static boolean downloadCohortMembers(OutputStream os, String serializerKey) {
+        CohortMemberBundle bundle = getCohortMembers();
+        try {
+            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS);
+            bundle.write((DataOutputStream)os);
+        } catch (IOException e) {
+            log.error("odkclinic download failed", e);
+            return false;
+        }
+        
+        return true;
+    }
+	
+	public static boolean downloadCohorts(OutputStream os, String serializerKey) {
+        CohortBundle bundle = getCohorts();
+        try {
+            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS);
+            bundle.write((DataOutputStream)os);
+        } catch (IOException e) {
+            log.error("odkclinic download failed", e);
+            return false;
+        }
+        
+        return true;
+    }
 	
 	/**
 	 * Retrieves encounters from InputStream
@@ -379,7 +466,7 @@ public class AndroidDownloadManager {
 	public static ProgramBundle getPrograms() {
 		ProgramBundle bundle = new ProgramBundle();
 		ProgramWorkflowService pService = Context.getProgramWorkflowService();
-		List<org.openmrs.Program> progs = pService.getAllPrograms();
+		List<org.openmrs.Program> progs = pService.getAllPrograms(false);
 		
 		for (org.openmrs.Program prog : progs) {
 			com.odkclinic.model.Program outProg = new com.odkclinic.model.Program();
@@ -391,6 +478,99 @@ public class AndroidDownloadManager {
 		}
 		
 		return bundle;		
+	}
+	
+	public static ConceptBundle getConcepts() {
+	    ConceptBundle bundle = new ConceptBundle();
+	    ConceptService cService = Context.getConceptService();
+	    List<org.openmrs.Concept> concepts = cService.getAllConcepts();
+	    for (org.openmrs.Concept concept: concepts) {
+	        com.odkclinic.model.Concept outConcept = new Concept();
+	        outConcept.setConceptId(concept.getConceptId());
+	        outConcept.setClassId(concept.getConceptClass().getConceptClassId());
+	        outConcept.setCreator(concept.getCreator().getUserId());
+	        outConcept.setDatatypeId(concept.getDatatype().getConceptDatatypeId());
+	        outConcept.setDateCreated(concept.getDateCreated());
+	        outConcept.setIsSet(concept.isSet());
+	        outConcept.setRetired(concept.getRetired());
+	        bundle.add(outConcept);
+	    }
+	    return bundle;
+	}
+	
+	public static ConceptNameBundle getConceptNames() {
+	    ConceptNameBundle bundle = new ConceptNameBundle();
+	    ConceptService cService = Context.getConceptService();
+        List<org.openmrs.Concept> concepts = cService.getAllConcepts();
+        for (org.openmrs.Concept concept: concepts) {
+            org.openmrs.ConceptName conceptName = concept.getName();
+            com.odkclinic.model.ConceptName outCN = new ConceptName();
+            outCN.setConceptId(concept.getConceptId());
+            outCN.setConceptNameId(conceptName.getConceptNameId());
+            outCN.setName(conceptName.getName());
+            bundle.add(outCN);
+        }
+	    return bundle;
+	}
+	
+	public static CohortBundle getCohorts() {
+	    //for now just return bundle of size 1 containing cohort 1
+	    CohortBundle cohortBundle = new CohortBundle();
+	    
+	    org.openmrs.Cohort cohort = Context.getCohortService().getCohort(1);
+	    com.odkclinic.model.Cohort outCohort = new com.odkclinic.model.Cohort();
+	    
+	    outCohort.setCohortDesc(cohort.getDescription());
+	    outCohort.setCohortId(cohort.getCohortId());
+	    outCohort.setCohortName(cohort.getName());
+	    outCohort.setCreator(cohort.getCreator().getUserId());
+	    outCohort.setDateCreated(cohort.getDateCreated());
+	    
+	    cohortBundle.add(outCohort);
+	    
+	    return cohortBundle;
+	}
+	
+	public static CohortMemberBundle getCohortMembers() {
+	    CohortMemberBundle bundle = new CohortMemberBundle();
+	    org.openmrs.Cohort cohort = Context.getCohortService().getCohort(1);
+	    for (Integer id: cohort.getMemberIds()) {
+	        CohortMember cohortMember = new CohortMember();
+	        cohortMember.setCohortId(cohort.getCohortId());
+	        cohortMember.setPatientId(id);
+	        bundle.add(cohortMember);
+	    }
+	    return bundle;
+	}
+	
+	public static LocationBundle getLocations() {
+	    LocationBundle bundle = new LocationBundle();
+	    LocationService lService = Context.getLocationService();
+	    for (org.openmrs.Location location: lService.getAllLocations()) {
+	        com.odkclinic.model.Location outLocation = new com.odkclinic.model.Location();
+	        outLocation.setCreator(location.getCreator().getUserId());
+	        outLocation.setDateCreated(location.getDateCreated());
+	        outLocation.setDesc(location.getDescription());
+	        outLocation.setLocationId(location.getLocationId());
+	        outLocation.setName(location.getName());
+	        bundle.add(outLocation);
+	    }
+	    return bundle;
+	}
+	
+	public static PatientProgramBundle getPatientPrograms() {
+	    PatientProgramBundle bundle = new PatientProgramBundle();
+	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
+	    Cohort cohort = Context.getCohortService().getCohort(1);
+	    List<Program> programs = pService.getAllPrograms(false);
+	    for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
+	        com.odkclinic.model.PatientProgram outPPR = new PatientProgram();
+	        outPPR.setPatientId(patientProgram.getPatient().getPatientId());
+	        outPPR.setPatientProgramId(patientProgram.getPatientProgramId());
+	        outPPR.setProgramId(patientProgram.getProgram().getProgramId());
+	        bundle.add(outPPR);
+	    }
+	    return bundle;
 	}
 	
 	public static long getLargestRevisionToken() {
