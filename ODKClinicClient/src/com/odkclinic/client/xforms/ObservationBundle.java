@@ -47,6 +47,7 @@ public class ObservationBundle implements Bundle<Observation>
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream dos = new DataOutputStream(baos);
         write(dos);
+        System.out.println(baos.size());
         return baos.toByteArray();
     }
 }

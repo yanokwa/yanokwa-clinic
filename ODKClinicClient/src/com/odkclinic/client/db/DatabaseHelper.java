@@ -43,8 +43,8 @@ class DatabaseHelper extends SQLiteOpenHelper {
     		db.execSQL(createString);
     	for (String trigger: DbConstants.TRIGGERS) 
     		db.execSQL(trigger);
-        for (String query: DbConstants.DEFAULT_VALUES)
-        	db.execSQL(query);
+        //for (String query: DbConstants.DEFAULT_VALUES)
+        //	db.execSQL(query);
         for (String index: DbConstants.INDEXES) {
         	db.execSQL(index);
         }
