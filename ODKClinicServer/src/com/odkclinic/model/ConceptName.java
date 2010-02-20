@@ -17,26 +17,26 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 public class ConceptName implements Persistent
 {
-    private int conceptNameId;
-    private int conceptId;
+    private Integer conceptNameId;
+    private Integer conceptId;
     private String Name;
 
-    public int getConceptNameId()
+    public Integer getConceptNameId()
     {
         return conceptNameId;
     }
 
-    public void setConceptNameId(int conceptNameId)
+    public void setConceptNameId(Integer conceptNameId)
     {
         this.conceptNameId = conceptNameId;
     }
 
-    public int getConceptId()
+    public Integer getConceptId()
     {
         return conceptId;
     }
 
-    public void setConceptId(int conceptId)
+    public void setConceptId(Integer conceptId)
     {
         this.conceptId = conceptId;
     }
