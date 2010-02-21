@@ -54,6 +54,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
 import android.widget.SimpleCursorTreeAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -266,7 +267,10 @@ public class PatientList extends ExpandableListActivity {
                 ((TextView) view.findViewById(R.id.patientgender)).setText(tempGender);
             }
             if (tempRace != null) {
+                ((LinearLayout) view.findViewById(R.id.patientracemodule)).setVisibility(1);
                 ((TextView) view.findViewById(R.id.patientrace)).setText(tempRace);
+            } else {
+                ((LinearLayout) view.findViewById(R.id.patientracemodule)).setVisibility(0);
             }
             if (tempBDay != null) {
                 DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
