@@ -145,11 +145,7 @@ public class Observation implements Persistent {
 		setConceptId(SerializationUtils.readInteger(dis));
 		setText(SerializationUtils.readUTF(dis));
 		setDate(SerializationUtils.readDate(dis));
-		String value = SerializationUtils.readUTF(dis);
-		if (value != null)
-			setValue(Double.valueOf(value));
-		else
-			setValue(null);
+		setValue(SerializationUtils.readDouble(dis));
 		setCreator(SerializationUtils.readInteger(dis));
 		setDateCreated(SerializationUtils.readDate(dis));
 		setValueBoolean(SerializationUtils.readBoolean(dis));
@@ -162,10 +158,7 @@ public class Observation implements Persistent {
 		SerializationUtils.writeInteger(dos, getConceptId());
 		SerializationUtils.writeUTF(dos, getText());
 		SerializationUtils.writeDate(dos, getDate());
-		if (getValue() != null)
-			SerializationUtils.writeUTF(dos, getValue().toString());
-		else
-			SerializationUtils.writeUTF(dos, null);
+		SerializationUtils.writeDouble(dos, getValue());
 		SerializationUtils.writeInteger(dos, getCreator());
 		SerializationUtils.writeDate(dos, getDateCreated());
 		SerializationUtils.writeBoolean(dos, getValueBoolean());
