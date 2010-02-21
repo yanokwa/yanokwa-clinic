@@ -10,7 +10,7 @@ import com.odkclinic.model.Concept;
  * @author zellv
  * 
  */
-public class ConceptBundle extends AbstractBundle
+public class ConceptBundle extends AbstractBundle<Concept>
 {
     public ConceptBundle()
     {

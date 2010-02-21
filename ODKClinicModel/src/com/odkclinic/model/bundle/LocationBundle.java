@@ -9,7 +9,7 @@ import com.odkclinic.model.Location;
  * @author zellv
  *
  */
-public class LocationBundle extends AbstractBundle
+public class LocationBundle extends AbstractBundle<Location>
 {
     public LocationBundle()
     {

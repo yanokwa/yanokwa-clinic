@@ -10,7 +10,7 @@ import com.odkclinic.model.Encounter;
  * @author zellv
  * 
  */
-public class EncounterBundle extends AbstractBundle
+public class EncounterBundle extends AbstractBundle<Encounter>
 {
     public EncounterBundle()
     {
