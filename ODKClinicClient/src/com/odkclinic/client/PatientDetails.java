@@ -90,9 +90,10 @@ public class PatientDetails extends ListActivity {
 		String race = patientInfo.getString(patientInfo.getColumnIndex(PatientTable.RACE.getName()));
         if (race == null || race.length() == 0)
         {
-            mRace.setVisibility(0);
+            //mRace.setVisibility(0);
+            mRace.setText("No Race Set.");
         } else
-            mRace.setVisibility(1);
+            //mRace.setVisibility(1);
             mRace.setText(race);
 		String tempDate = patientInfo.getString(patientInfo.getColumnIndex(PatientTable.BIRTHDATE.getName()));
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

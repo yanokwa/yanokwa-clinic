@@ -526,7 +526,7 @@ public class PatientList extends ExpandableListActivity {
                     
                     if (secondEb.getBundle().size() > 0)
                     {
-                        db.insertEncounterBundle(eb);
+                        db.insertEncounterBundle(secondEb);
                         Log.d(LOG_TAG, "GOT NONEMPTY EB");
                     } else
                     {
@@ -534,7 +534,7 @@ public class PatientList extends ExpandableListActivity {
                     }
                     if (secondOb.getBundle().size() > 0)
                     {
-                        db.insertObservationBundle(ob);
+                        db.insertObservationBundle(secondOb);
                         Log.d(LOG_TAG, "GOT NONEMPTY OB");
                     } else
                     {

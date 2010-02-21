@@ -39,7 +39,7 @@ import com.odkclinic.client.db.tables.views.ObservationView;
 public class DbConstants {
 	
 	public static String UPDATE_COUNT = "update_count";
-	public static int NOTES_CONCEPT_ID = 2;
+	public static int NOTES_CONCEPT_ID = 6100;
     /**
      * Triggers
      */
@@ -200,7 +200,7 @@ public class DbConstants {
 				" FROM %s, %s, %s, %s, %s, %s " +
 				" WHERE %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = ? AND %s = ? AND %s = %s " +
 				" ORDER BY %s",
-				ConceptNameTable.NAME.getName(), ObservationView.DATE_CREATED.getName(), ObservationView.NUMERIC.getName(), ObservationView.TEXT.getName(), 
+				ConceptNameTable.NAME.getName(), ObservationView.DATETIME.getName(), ObservationView.NUMERIC.getName(), ObservationView.TEXT.getName(), 
 				ObservationView.DATETIME.getName(), ObservationView.BOOLEAN.getName(),
 				
 				PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ProgramTable.TABLE_NAME, PatientProgramTable.TABLE_NAME, ObservationView.TABLE_NAME,
@@ -209,7 +209,7 @@ public class DbConstants {
 				ConceptTable.ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ObservationView.CONCEPT_ID.getName(), ConceptTable.ID.getName(), 
 				ConceptTable.ID.getName(), PatientTable.ID.getName(), ObservationView.PATIENT_ID.getName(), PatientTable.ID.getName(),
 				
-				ObservationView.DATE_CREATED.getName());
+				ObservationView.DATETIME.getName());
     
     //TODO add more details
     /* 
@@ -229,18 +229,18 @@ public class DbConstants {
 				
 				PatientTable.ID.getName(), EncounterView.PATIENT_ID.getName(), PatientTable.ID.getName(),
 				EncounterView.ID.getName());
-    
+        //TODO: left inner join concept desc
         public static final String CONCEPT_QUERY = 
         	String.format(
-    				" SELECT %s, %s, %s, %s" +
-    				" FROM %s, %s, %s, %s " +
-    				" WHERE %s = %s AND %s = %s AND %s = %s AND %s = ? " +
+    				" SELECT DISTINCT %s, %s, %s " +
+    				" FROM %s, %s, %s " +
+    				" WHERE %s = %s AND %s = %s AND %s = ? " +
     				" ORDER BY %s",
-    				ConceptNameTable.NAME.getName(), ConceptDataTypeTable.NAME.getName(), ConceptDataTypeTable.HL7.getName(), ConceptDescTable.DESC.getName(),
+    				ConceptNameTable.NAME.getName(), ConceptDataTypeTable.NAME.getName(), ConceptDataTypeTable.HL7.getName(),
     				
-    				ConceptTable.TABLE_NAME, ConceptDescTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ConceptDataTypeTable.TABLE_NAME,
+    				ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ConceptDataTypeTable.TABLE_NAME,
     				
-    				ConceptTable.ID.getName(), ConceptDescTable.CONCEPT_ID.getName(), ConceptDataTypeTable.ID.getName(), 
+    			 ConceptDataTypeTable.ID.getName(), 
     				ConceptTable.DATATYPE_ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ConceptTable.ID.getName(),
     				
     				ConceptTable.ID.getName());
@@ -263,7 +263,7 @@ public class DbConstants {
         
         public static final String GET_PATIENT_CONCEPTS = 
         	String.format(
-    				" SELECT  %s, %s _id" +
+    				" SELECT DISTINCT %s, %s _id" +
     				" FROM %s, %s, %s, %s, %s " +
     				" WHERE %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = ? " +
     				" ORDER BY %s ",
