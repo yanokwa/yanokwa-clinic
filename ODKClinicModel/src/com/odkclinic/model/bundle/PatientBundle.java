@@ -9,7 +9,7 @@ import com.odkclinic.model.Patient;
  * @author zellv
  *
  */
-public class PatientBundle extends AbstractBundle
+public class PatientBundle extends AbstractBundle<Patient>
 {
     public PatientBundle()
     {

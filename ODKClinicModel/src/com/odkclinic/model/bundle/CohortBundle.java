@@ -6,7 +6,7 @@ import com.odkclinic.model.Cohort;
  * @author zellv
  *
  */
-public class CohortBundle extends AbstractBundle
+public class CohortBundle extends AbstractBundle<Cohort>
 {
     public CohortBundle()
     {

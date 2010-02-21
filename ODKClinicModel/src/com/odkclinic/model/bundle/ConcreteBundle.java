@@ -8,7 +8,7 @@ package com.odkclinic.model.bundle;
  * @author zellv
  * 
  */
-public class ConcreteBundle extends AbstractBundle
+public class ConcreteBundle<T> extends AbstractBundle<T>
 {
     @SuppressWarnings( { "unchecked", "unused" })
     private Class cls;
@@ -20,7 +20,7 @@ public class ConcreteBundle extends AbstractBundle
     }
 
     @SuppressWarnings("unchecked")
-    public ConcreteBundle getInstance(Class cls)
+    public ConcreteBundle<?> getInstance(Class cls)
     {
         return new ConcreteBundle(cls);
     }

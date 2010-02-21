@@ -20,28 +20,28 @@ import com.sun.xml.internal.ws.message.ByteArrayAttachment;
  * @author Euzel Villanueva
  * 
  */
-public abstract class AbstractBundle implements Bundle<Persistent>
+public abstract class AbstractBundle<E> implements Bundle<E>
 {
-    private List<Persistent> bundle;
+    private List<E> bundle;
     private final Class<?> cls;
 
     public AbstractBundle(Class<?> cls)
     {
-        bundle = new ArrayList<Persistent>();
+        bundle = new ArrayList<E>();
         this.cls = cls;
     }
 
-    public final void add(Persistent element)
+    public final void add(E element)
     {
         bundle.add(element);
     }
 
-    public final List<Persistent> getBundle()
+    public final List<E> getBundle()
     {
         return bundle;
     }
 
-    private final void setBundle(List<Persistent> bundle)
+    private final void setBundle(List<E> bundle)
     {
         this.bundle = bundle;
     }
@@ -50,7 +50,7 @@ public abstract class AbstractBundle implements Bundle<Persistent>
     public final void read(DataInputStream dis) throws IOException,
             InstantiationException, IllegalAccessException
     {
-        List<Persistent> bundle = SerializationUtils.read(dis, cls);
+        List bundle = SerializationUtils.read(dis, cls);
         if (bundle != null)
         {
             setBundle(bundle);

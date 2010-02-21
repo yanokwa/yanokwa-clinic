@@ -9,7 +9,7 @@ import com.odkclinic.model.Observation;
  * @author zellv
  *
  */
-public class ObservationBundle extends AbstractBundle
+public class ObservationBundle extends AbstractBundle<Observation>
 {
     public ObservationBundle()
     {
