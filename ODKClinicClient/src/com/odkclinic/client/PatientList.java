@@ -61,9 +61,15 @@ import android.widget.Toast;
 import com.odkclinic.client.db.DbAdapter;
 import com.odkclinic.client.db.tables.CohortMemberTable;
 import com.odkclinic.client.db.tables.PatientTable;
+import com.odkclinic.client.xforms.CohortBundle;
+import com.odkclinic.client.xforms.CohortMemberBundle;
+import com.odkclinic.client.xforms.ConceptBundle;
+import com.odkclinic.client.xforms.ConceptNameBundle;
 import com.odkclinic.client.xforms.EncounterBundle;
+import com.odkclinic.client.xforms.LocationBundle;
 import com.odkclinic.client.xforms.ObservationBundle;
 import com.odkclinic.client.xforms.PatientBundle;
+import com.odkclinic.client.xforms.PatientProgramBundle;
 import com.odkclinic.client.xforms.ProgramBundle;
 
 /**
@@ -288,7 +294,13 @@ public class PatientList extends ExpandableListActivity {
     public static final byte ACTION_ANDROID_DOWNLOAD_OBS = 2;
     public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTS = 4;
     public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMS = 8;
-    public static final byte ACTION_ANDROID_DOWNLOADS = 15;
+    public static final byte ACTION_ANDROID_DOWNLOAD_CONCEPTS = 16;
+    public static final byte ACTION_ANDROID_DOWNLOAD_LOCATIONS = 32;
+    public static final byte ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES = 64;
+    public static final byte ACTION_ANDROID_DOWNLOAD_COHORTS = 127;
+    public static final byte ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS = 126;
+    public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS = 125;
+    //public static final byte ACTION_ANDROID_DOWNLOADS = 15;
     public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 16;
     public static final byte ACTION_ANDROID_UPLOAD_OBS = 32;
     public static final byte ACTION_ANDROID_UPLOADS = 48;
@@ -351,7 +363,7 @@ public class PatientList extends ExpandableListActivity {
                 reqEntity.addPart("UPLOAD_ENCOUNTER", new InputStreamKnownSizeBody(new ByteArrayInputStream(ebBytes), ebBytes.length, "img/jpeg", "ff"));
                 byte[] obBytes = ob.getBytes();
                 reqEntity.addPart("UPLOAD_OBSERVATION", new InputStreamKnownSizeBody(new ByteArrayInputStream(obBytes), obBytes.length, "img/jpeg", "ff"));
-                reqEntity.addPart("DOWNLOAD_ACTIONS", new StringBody("DOWNLOAD_PROGRAM;DOWNLOAD_PATIENT;DOWNLOAD_ENCOUNTER;DOWNLOAD_OBSERVATION"));
+                reqEntity.addPart("DOWNLOAD_ACTIONS", new StringBody("DOWNLOAD_PROGRAM;DOWNLOAD_PATIENT;DOWNLOAD_ENCOUNTER;DOWNLOAD_OBSERVATION;DOWNLOAD_LOCATION;DOWNLOAD_PATIENTPROGRAM;DOWNLOAD_COHORT;DOWNLOAD_COHORTMEMBER;DOWNLOAD_CONCEPT;DOWNLOAD_CONCEPTNAME"));
                 
                 httpost.setEntity(reqEntity);
                 
@@ -368,6 +380,13 @@ public class PatientList extends ExpandableListActivity {
                     PatientBundle pb = new PatientBundle();
                     ObservationBundle secondOb = new ObservationBundle(); 
                     EncounterBundle secondEb = new EncounterBundle();
+                    LocationBundle lb = new LocationBundle();
+                    PatientProgramBundle ppb = new PatientProgramBundle();
+                    CohortBundle cb = new CohortBundle();
+                    CohortMemberBundle cmb = new CohortMemberBundle();
+                    ConceptBundle cnb = new ConceptBundle();
+                    ConceptNameBundle cnnb = new ConceptNameBundle();
+                    
                     boolean success = false;
                     
                     try {
@@ -383,6 +402,24 @@ public class PatientList extends ExpandableListActivity {
                                     break;
                                 case ACTION_ANDROID_DOWNLOAD_PROGRAMS:
                                     prb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS:
+                                    cmb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_COHORTS:
+                                    cb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_CONCEPTS:
+                                    cnb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES:
+                                    cnnb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_LOCATIONS:
+                                    lb.read(dis);
+                                    break;
+                                case ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS:
+                                    ppb.read(dis);
                                     break;
                                 case ACTION_ANDROID_DOWNLOAD_PATIENTS:
                                     pb.read(dis);
@@ -412,15 +449,33 @@ public class PatientList extends ExpandableListActivity {
                     db.deleteSyncedEncounters(eb);
                     db.deleteSyncedObservations(ob);
                     
-                    // Insert bundles into database
-                    if (prb.getBundle().size() > 0) {
-                        db.insertProgramBundle(prb);
-                        Log.d(LOG_TAG, "GOT NONEMPTY PRB");
+                    if (cb.getBundle().size() > 0)
+                    {
+                        db.insertCohortBundle(cb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY CB");
                     } else
                     {
-                        Log.d(LOG_TAG, "GOT EMPTY PRB");
+                        Log.d(LOG_TAG, "GOT EMPTY CB");
                     }
-
+                    
+                    if (cnb.getBundle().size() > 0)
+                    {
+                        db.insertConceptBundle(cnb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY CNB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY CNB");
+                    }
+                    
+                    if (cnnb.getBundle().size() > 0)
+                    {
+                        db.insertConceptNameBundle(cnnb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY CNNB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY CNNB");
+                    }
+                    
                     if (pb.getBundle().size() > 0)
                     {
                         db.insertPatientBundle(pb);
@@ -429,7 +484,50 @@ public class PatientList extends ExpandableListActivity {
                     {
                         Log.d(LOG_TAG, "GOT EMPTY PB");
                     }
-
+                    
+                    if (cmb.getBundle().size() > 0)
+                    {
+                        db.insertCohortMemberBundle(cmb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY CMB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY CMB");
+                    }
+                    
+                    if (lb.getBundle().size() > 0)
+                    {
+                        db.insertLocationBundle(lb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY LB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY LB");
+                    }
+                    
+                    if (prb.getBundle().size() > 0) {
+                        db.insertProgramBundle(prb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY PRB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY PRB");
+                    }
+                    
+                    if (ppb.getBundle().size() > 0)
+                    {
+                        db.insertPatientProgramBundle(ppb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY PPB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY PPB");
+                    }
+                    
+                    if (secondEb.getBundle().size() > 0)
+                    {
+                        db.insertEncounterBundle(eb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY EB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY EB");
+                    }
                     if (secondOb.getBundle().size() > 0)
                     {
                         db.insertObservationBundle(ob);
@@ -439,14 +537,7 @@ public class PatientList extends ExpandableListActivity {
                         Log.d(LOG_TAG, "GOT EMPTY OB");
                     }
 
-                    if (secondEb.getBundle().size() > 0)
-                    {
-                        db.insertEncounterBundle(eb);
-                        Log.d(LOG_TAG, "GOT NONEMPTY EB");
-                    } else
-                    {
-                        Log.d(LOG_TAG, "GOT EMPTY EB");
-                    }
+                    
                     
                     // update rev token to new value
                     //db.setRevToken(dis.readLong()); 

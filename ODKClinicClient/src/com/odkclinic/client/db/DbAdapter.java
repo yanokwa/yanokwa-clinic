@@ -16,10 +16,10 @@
 
 package com.odkclinic.client.db;
 
-import java.sql.Date;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -30,8 +30,12 @@ import android.util.Log;
 
 import com.odkclinic.client.db.tables.ClientEncounterTable;
 import com.odkclinic.client.db.tables.ClientObservationTable;
+import com.odkclinic.client.db.tables.CohortMemberTable;
 import com.odkclinic.client.db.tables.CohortTable;
+import com.odkclinic.client.db.tables.ConceptNameTable;
+import com.odkclinic.client.db.tables.ConceptTable;
 import com.odkclinic.client.db.tables.EncounterTable;
+import com.odkclinic.client.db.tables.LocationTable;
 import com.odkclinic.client.db.tables.ObservationTable;
 import com.odkclinic.client.db.tables.PatientProgramTable;
 import com.odkclinic.client.db.tables.PatientTable;
@@ -39,8 +43,18 @@ import com.odkclinic.client.db.tables.ProgramTable;
 import com.odkclinic.client.db.tables.SettingsTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
+import com.odkclinic.client.xforms.Cohort;
+import com.odkclinic.client.xforms.CohortBundle;
+import com.odkclinic.client.xforms.CohortMember;
+import com.odkclinic.client.xforms.CohortMemberBundle;
+import com.odkclinic.client.xforms.Concept;
+import com.odkclinic.client.xforms.ConceptBundle;
+import com.odkclinic.client.xforms.ConceptName;
+import com.odkclinic.client.xforms.ConceptNameBundle;
 import com.odkclinic.client.xforms.Encounter;
 import com.odkclinic.client.xforms.EncounterBundle;
+import com.odkclinic.client.xforms.Location;
+import com.odkclinic.client.xforms.LocationBundle;
 import com.odkclinic.client.xforms.Observation;
 import com.odkclinic.client.xforms.ObservationBundle;
 import com.odkclinic.client.xforms.Patient;
@@ -258,7 +272,8 @@ public class DbAdapter {
     }
     public void newObservation(long concept_id, long patient_id, Date value) {
     	ContentValues values = new ContentValues();
-    	values.put(ClientObservationTable.DATETIME.getName(), value.toString());
+    	Date date = value;
+    	values.put(ClientObservationTable.DATETIME.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
     	values.put(ClientObservationTable.CREATOR.getName(), 1);
     	values.put(ClientObservationTable.VOIDED.getName(), 0);
     	values.put(ClientObservationTable.CONCEPT_ID.getName(), concept_id);
@@ -357,18 +372,21 @@ public class DbAdapter {
         cursor.close();
         return ret;
     }
-    
+    private DateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private String mZeroDate = "0000-00-00 00:00:00";
     /**
      * Inserts given Encounter into database
      */
-    public void insertEncounter(Encounter e) {
+    public void insertEncounter(Encounter e) {     
     	ContentValues values = new ContentValues();
     	values.put(EncounterTable.ID.getName(), e.getEncounterId());
     	values.put(EncounterTable.LOCATION_ID.getName(), e.getLocationId());
     	values.put(EncounterTable.PATIENT_ID.getName(), e.getPatientId());
     	values.put(EncounterTable.PROVIDER_ID.getName(), e.getProviderId());
-    	values.put(EncounterTable.DATE_CREATED.getName(), e.getDateCreated().toString()); //TODO may not work
-    	values.put(EncounterTable.DATETIME.getName(), e.getDateEncountered().toString());
+    	Date date = e.getDateCreated();
+    	values.put(EncounterTable.DATE_CREATED.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
+    	date = e.getDateEncountered();
+    	values.put(EncounterTable.DATETIME.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
     	values.put(EncounterTable.ID.getName(), e.getEncounterId());
     	values.put(EncounterTable.CREATOR.getName(), e.getCreator());
     	values.put(EncounterTable.VOIDED.getName(), 0);
@@ -401,8 +419,10 @@ public class DbAdapter {
     	values.put(ObservationTable.TEXT.getName(), o.getText());
     	values.put(ObservationTable.BOOLEAN.getName(), o.getValueBoolean());
     	values.put(ObservationTable.VOIDED.getName(), 0); 
-    	values.put(ObservationTable.DATE_CREATED.getName(), o.getDateCreated().toString()); //TODO may not work
-    	values.put(ObservationTable.DATETIME.getName(), o.getDate().toString());
+    	Date date = o.getDateCreated();
+    	values.put(ObservationTable.DATE_CREATED.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
+    	date = o.getDate();
+    	values.put(ObservationTable.DATETIME.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
     	values.put(ObservationTable.CREATOR.getName(), o.getCreator());
     	mDb.insert(ObservationTable.TABLE_NAME, null, values);
     }
@@ -432,11 +452,27 @@ public class DbAdapter {
     	mDb.insert(ProgramTable.TABLE_NAME, null, values);
     }
     
+    public void insertPatientProgramBundle(PatientProgramBundle prb) {
+        for (PatientProgram pr: prb.getBundle()) {
+            //if (checkPatientProgramExists(pr.getPatientProgramId().longValue()))
+            //    mDb.delete(PatientProgramTable.TABLE_NAME, PatientProgramTable.ID.getName() + "=" + pr.getPatientProgramId(), null);
+            insertPatientProgram(pr);
+        }
+    }
+    
+    private boolean checkPatientProgramExists(long id) {
+        Cursor cursor = mDb.query(PatientProgramTable.TABLE_NAME, null, PatientProgramTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() != 0;
+        cursor.close();
+        return ret;
+    }
+    
     /**
      * Inserts given PatientProgram into database.
      */
     public void insertPatientProgram(PatientProgram ppr) {
     	ContentValues values = new ContentValues();
+    	values.put(PatientProgramTable.ID.getName(), ppr.getPatientProgramId());
     	values.put(PatientProgramTable.PATIENT_ID.getName(), ppr.getPatientId());
     	values.put(PatientProgramTable.PROGRAM_ID.getName(), ppr.getProgramId());
     	mDb.insert(PatientProgramTable.TABLE_NAME, null, values);
@@ -465,13 +501,159 @@ public class DbAdapter {
     	values.put(PatientTable.ID.getName(), p.getPatientId());
     	values.put(PatientTable.GENDER.getName(), p.getGender());
 		values.put(PatientTable.RACE.getName(), p.getRace());
-		values.put(PatientTable.BIRTHDATE.getName(), p.getBirth().toString());
+		Date date = p.getBirth();
+		values.put(PatientTable.BIRTHDATE.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
 		values.put(PatientTable.DEAD.getName(), p.getDead());
 		values.put(PatientTable.BIRTHPLACE.getName(), p.getBirthplace());
 		values.put(PatientTable.HEIGHT.getName(), p.getHeight());
 		values.put(PatientTable.WEIGHT.getName(), p.getWeight());
 		values.put(PatientTable.NAME.getName(), p.getName());
     	mDb.insert(PatientTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertConceptBundle(ConceptBundle pb) {
+        for (Concept p: pb.getBundle()) {
+            if (checkConceptExists(p.getConceptId().longValue()))
+                mDb.delete(ConceptTable.TABLE_NAME, ConceptTable.ID.getName() + "=" + p.getConceptId(), null);
+            insertConcept(p);
+        }
+    }
+    
+    private boolean checkConceptExists(long id) {
+        Cursor cursor = mDb.query(ConceptTable.TABLE_NAME, null, ConceptTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() != 0;
+        cursor.close();
+        return ret;
+    }
+    
+    /**
+     * Inserts given Concept into database
+     */
+    public void insertConcept(Concept p) {
+        ContentValues values = new ContentValues();
+        values.put(ConceptTable.ID.getName(), p.getConceptId());
+        values.put(ConceptTable.DATATYPE_ID.getName(), p.getDatatypeId());
+        values.put(ConceptTable.CLASS_ID.getName(), p.getClassId());
+        values.put(ConceptTable.IS_SET.getName(), p.getIsSet());
+        values.put(ConceptTable.RETIRED.getName(), p.isRetired());
+        values.put(ConceptTable.CREATOR.getName(), p.getCreator());
+        Date date = p.getDateCreated();
+        values.put(ConceptTable.DATE_CREATED.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
+        mDb.insert(ConceptTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertLocationBundle(LocationBundle pb) {
+        for (Location p: pb.getBundle()) {
+            if (checkLocationExists(p.getLocationId().longValue()))
+                mDb.delete(LocationTable.TABLE_NAME, LocationTable.ID.getName() + "=" + p.getLocationId(), null);
+            insertLocation(p);
+        }
+    }
+    
+    private boolean checkLocationExists(long id) {
+        Cursor cursor = mDb.query(LocationTable.TABLE_NAME, null, LocationTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() != 0;
+        cursor.close();
+        return ret;
+    }
+    
+    /**
+     * Inserts given Location into database
+     */
+    public void insertLocation(Location p) {
+        ContentValues values = new ContentValues();
+        values.put(LocationTable.ID.getName(), p.getLocationId());
+        values.put(LocationTable.NAME.getName(), p.getName());
+        values.put(LocationTable.DESC.getName(), p.getDesc());
+        values.put(LocationTable.CREATOR.getName(), p.getCreator());
+        Date date = p.getDateCreated();
+        values.put(LocationTable.DATE_CREATED.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
+        mDb.insert(LocationTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertConceptNameBundle(ConceptNameBundle pb) {
+        for (ConceptName p: pb.getBundle()) {
+            if (checkConceptNameExists(p.getConceptNameId().longValue()))
+                mDb.delete(ConceptNameTable.TABLE_NAME, ConceptNameTable.ID.getName() + "=" + p.getConceptNameId(), null);
+            insertConceptName(p);
+        }
+    }
+    
+    private boolean checkConceptNameExists(long id) {
+        Cursor cursor = mDb.query(ConceptNameTable.TABLE_NAME, null, ConceptNameTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() != 0;
+        cursor.close();
+        return ret;
+    }
+    
+    /**
+     * Inserts given ConceptName into database
+     */
+    public void insertConceptName(ConceptName p) {
+        ContentValues values = new ContentValues();
+        values.put(ConceptNameTable.ID.getName(), p.getConceptNameId());
+        values.put(ConceptNameTable.NAME.getName(), p.getName());
+        values.put(ConceptNameTable.CONCEPT_ID.getName(), p.getConceptId());
+        mDb.insert(ConceptNameTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertCohortBundle(CohortBundle pb) {
+        for (Cohort p: pb.getBundle()) {
+            if (checkCohortExists(p.getCohortId().longValue()))
+                mDb.delete(CohortTable.TABLE_NAME, CohortTable.ID.getName() + "=" + p.getCohortId(), null);
+            insertCohort(p);
+        }
+    }
+    
+    private boolean checkCohortExists(long id) {
+        Cursor cursor = mDb.query(CohortTable.TABLE_NAME, null, CohortTable.ID.getName() + "=" + id, null, null, null, null); 
+        boolean ret = cursor.getCount() != 0;
+        cursor.close();
+        return ret;
+    }
+    
+    /**
+     * Inserts given Cohort into database
+     */
+    public void insertCohort(Cohort p) {
+        ContentValues values = new ContentValues();
+        values.put(CohortTable.ID.getName(), p.getCohortId());
+        values.put(CohortTable.DESC.getName(), p.getCohortDesc());
+        values.put(CohortTable.VOIDED.getName(),0);
+        values.put(CohortTable.NAME.getName(), p.getCohortName());
+        values.put(CohortTable.CREATOR.getName(), p.getCreator());
+        Date date = p.getDateCreated();
+        values.put(CohortTable.DATE_CREATED.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
+        mDb.insert(CohortTable.TABLE_NAME, null, values);
+    }
+    
+    public void insertCohortMemberBundle(CohortMemberBundle pb) {
+        for (CohortMember p: pb.getBundle()) {
+            //if (checkCohortMemberExists(p.getCohortId().longValue()))
+            //    mDb.delete(CohortMemberTable.TABLE_NAME, CohortMemberTable.ID.getName() + "=" + p.getCohortMemberId(), null);
+            insertCohortMember(p);
+        }
+    }
+    
+    private boolean checkCohortMemberExists(long cohortId, long patientId) {
+        Cursor cursor = mDb.query(CohortMemberTable.TABLE_NAME, 
+                                    null, 
+                                    CohortMemberTable.COHORT_ID.getName() + "=" + cohortId + " AND " +
+                                    CohortMemberTable.PATIENT_ID.getName() + "=" + patientId, 
+                                    null, null, null, null); 
+        boolean ret = cursor.getCount() != 0;
+        cursor.close();
+        return ret;
+    }
+    
+    /**
+     * Inserts given CohortMember into database
+     */
+    public void insertCohortMember(CohortMember p) {
+        ContentValues values = new ContentValues();
+        values.put(CohortMemberTable.COHORT_ID.getName(), p.getCohortId());
+        values.put(CohortMemberTable.PATIENT_ID.getName(), p.getPatientId());
+        mDb.insert(CohortMemberTable.TABLE_NAME, null, values);
     }
     
     public EncounterBundle getEncounterBundle() {
