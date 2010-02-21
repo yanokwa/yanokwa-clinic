@@ -411,34 +411,38 @@ public class AndroidDownloadManager {
         {
             Set<Integer> patients = cohort.getPatientIds();
             System.out.println("NUMBER OF PATIENTS (OBS) " + patients.size());
+            List<Person> person = new ArrayList<Person>();
             for (Integer patientId : patients)
             {
                 Patient patient = pService.getPatient(patientId);
-                List<Person> person = new ArrayList<Person>();
                 person.add(patient);
-                /*List<org.openmrs.Obs> obs = obsService
-                        .getObservations(person, null, null, null, null, null, null, null, null, new Date(
-                                revToken), null, false);
-                */
-                List<org.openmrs.Obs> obs = obsService
-                .getObservations(person, null, null, null, null, null, null, null, null, null, null, false);
-                System.out.println("NUMER OF OBS " + obs.size());
-                
-                for (org.openmrs.Obs inObs : obs)
-                {
-                    Observation outObs = new Observation();
-                    outObs.setObsId(inObs.getObsId());
-                    outObs.setEncounterId(inObs.getEncounter().getEncounterId());
-                    outObs.setConceptId(inObs.getConcept().getConceptId());
-                    outObs.setText(inObs.getValueText());
-                    outObs.setDate(inObs.getValueDatetime());
-                    outObs.setValue(inObs.getValueNumeric());
-                    //outObs.setUinObs.getCreator().getUserId();
-                    outObs.setDateCreated(inObs.getDateCreated());
+                /*
+                 * List<org.openmrs.Obs> obs = obsService
+                 * .getObservations(person, null, null, null, null, null, null,
+                 * null, null, new Date( revToken), null, false);
+                 */
+            }
+            List<org.openmrs.Obs> obs = obsService
+                    .getObservations(person, null, null, null, null, null, null, null, null, null, null, false);
+            System.out.println("NUMBER OF OBS " + obs.size());
 
-                    bundle.add(outObs);
+            for (org.openmrs.Obs inObs : obs)
+            {
+                Observation outObs = new Observation();
+                outObs.setObsId(inObs.getObsId());
+                outObs.setPatientId(inObs.getPatient().getPatientId());
+                outObs.setCreator(inObs.getCreator().getUserId());
+                outObs.setConceptId(inObs.getConcept().getConceptId());
+                outObs.setEncounterId(inObs.getEncounter().getEncounterId());
+                outObs.setConceptId(inObs.getConcept().getConceptId());
+                outObs.setText(inObs.getValueText());
+                outObs.setDate(inObs.getObsDatetime());
+                outObs.setValue(inObs.getValueNumeric());
+                // outObs.setUinObs.getCreator().getUserId();
+                outObs.setDateCreated(inObs.getDateCreated());
 
-                }
+                bundle.add(outObs);
+
             }
         }
         return bundle;
@@ -499,7 +503,19 @@ public class AndroidDownloadManager {
 		
 		return bundle;		
 	}
-	
+	private static Set<org.openmrs.ConceptDatatype> mConceptDTs;
+	private static Set<org.openmrs.ConceptDatatype> getConceptDTs() {
+	    if (mConceptDTs == null) {
+    	    ConceptService cService = Context.getConceptService();
+    	    mConceptDTs = new HashSet<org.openmrs.ConceptDatatype>();
+    	    
+    	    mConceptDTs.add(cService.getConceptDatatype(1));
+    	    mConceptDTs.add(cService.getConceptDatatype(3));
+    	    mConceptDTs.add(cService.getConceptDatatype(10));
+	    }
+	    System.out.println("Size of DTs: " + mConceptDTs.size());
+	    return mConceptDTs;
+	}
 	public static ConceptBundle getConcepts() {
 	    ConceptBundle bundle = new ConceptBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
@@ -507,7 +523,9 @@ public class AndroidDownloadManager {
         List<Program> programs = pService.getAllPrograms(false);
         Set<org.openmrs.Concept> concepts = new HashSet<org.openmrs.Concept>();
         for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
-           concepts.add(patientProgram.getProgram().getConcept());
+           org.openmrs.Concept concept = patientProgram.getProgram().getConcept();
+           if (getConceptDTs().contains(concept.getDatatype())) 
+               concepts.add(concept);
         }
 	    for (org.openmrs.Concept concept: concepts) {
 	        com.odkclinic.model.Concept outConcept = new Concept();
@@ -530,7 +548,9 @@ public class AndroidDownloadManager {
         List<Program> programs = pService.getAllPrograms(false);
         Set<org.openmrs.Concept> concepts = new HashSet<org.openmrs.Concept>();
         for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
-           concepts.add(patientProgram.getProgram().getConcept());
+            org.openmrs.Concept concept = patientProgram.getProgram().getConcept();
+            if (getConceptDTs().contains(concept.getDatatype())) 
+                concepts.add(concept);
         }
         for (org.openmrs.Concept concept: concepts) {
             org.openmrs.ConceptName conceptName = concept.getName();
