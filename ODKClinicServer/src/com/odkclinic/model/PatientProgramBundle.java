@@ -19,7 +19,8 @@ package com.odkclinic.model;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Vector;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
@@ -29,23 +30,25 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
  */
 
 public class PatientProgramBundle {
-    private Vector<PatientProgram> bundle;
+    private ArrayList<PatientProgram> bundle;
     
     public PatientProgramBundle() {
-        bundle = new Vector<PatientProgram>();
+        bundle = new ArrayList<PatientProgram>();
     }
     
     public void add(PatientProgram element) {
         bundle.add(element);
     }
     
-    public Vector<PatientProgram> getBundle() {
+    public ArrayList<PatientProgram> getBundle() {
         return bundle;
     }
     
     public void read(DataInputStream dis) throws IOException, 
             InstantiationException, IllegalAccessException {
-        bundle = (Vector<PatientProgram>) SerializationUtils.read(dis, PatientProgram.class);
+        List tempBundle = (ArrayList<PatientProgram>) SerializationUtils.read(dis, PatientProgram.class);
+        if (tempBundle != null)
+            bundle = (ArrayList<PatientProgram>) tempBundle;
     }
     
     public void write(DataOutputStream dos) throws IOException {
