@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -17,6 +18,7 @@ import org.openmrs.EncounterType;
 import org.openmrs.Location;
 import org.openmrs.Patient;
 import org.openmrs.Person;
+import org.openmrs.PersonAttribute;
 import org.openmrs.Program;
 import org.openmrs.User;
 import org.openmrs.api.CohortService;
@@ -467,7 +469,9 @@ public class AndroidDownloadManager {
 			//outPat.setWeight( );
 			outPat.setName(patient.getGivenName() + " " + patient.getFamilyName());
 			outPat.setPatientId(patientId);
-			//outPat.setRace( );
+			PersonAttribute race = patient.getAttribute("race");
+			if (race != null)
+			    outPat.setRace(race.getValue());
 			
 			bundle.add(outPat);
 		}
@@ -498,8 +502,13 @@ public class AndroidDownloadManager {
 	
 	public static ConceptBundle getConcepts() {
 	    ConceptBundle bundle = new ConceptBundle();
-	    ConceptService cService = Context.getConceptService();
-	    List<org.openmrs.Concept> concepts = cService.getAllConcepts();
+	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
+        Cohort cohort = Context.getCohortService().getCohort(1);
+        List<Program> programs = pService.getAllPrograms(false);
+        Set<org.openmrs.Concept> concepts = new HashSet<org.openmrs.Concept>();
+        for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
+           concepts.add(patientProgram.getProgram().getConcept());
+        }
 	    for (org.openmrs.Concept concept: concepts) {
 	        com.odkclinic.model.Concept outConcept = new Concept();
 	        outConcept.setConceptId(concept.getConceptId());
@@ -516,8 +525,13 @@ public class AndroidDownloadManager {
 	
 	public static ConceptNameBundle getConceptNames() {
 	    ConceptNameBundle bundle = new ConceptNameBundle();
-	    ConceptService cService = Context.getConceptService();
-        List<org.openmrs.Concept> concepts = cService.getAllConcepts();
+	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
+        Cohort cohort = Context.getCohortService().getCohort(1);
+        List<Program> programs = pService.getAllPrograms(false);
+        Set<org.openmrs.Concept> concepts = new HashSet<org.openmrs.Concept>();
+        for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
+           concepts.add(patientProgram.getProgram().getConcept());
+        }
         for (org.openmrs.Concept concept: concepts) {
             org.openmrs.ConceptName conceptName = concept.getName();
             com.odkclinic.model.ConceptName outCN = new ConceptName();
