@@ -4,6 +4,7 @@
 
 package com.odkclinic.model.bundle;
 
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,6 +13,8 @@ import java.util.List;
 
 import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
+
+import com.sun.xml.internal.ws.message.ByteArrayAttachment;
 
 /**
  * @author Euzel Villanueva
@@ -57,5 +60,12 @@ public abstract class AbstractBundle implements Bundle<Persistent>
     public final void write(DataOutputStream dos) throws IOException
     {
         SerializationUtils.write(bundle, dos);
+    }
+    
+    public final byte[] getBytes() throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream dos = new DataOutputStream(baos);
+        write(dos);
+        return baos.toByteArray();
     }
 }
