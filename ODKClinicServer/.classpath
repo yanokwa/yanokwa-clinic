@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="com/odkclinic/model/" kind="src" path="src"/>
 	<classpathentry kind="src" path="web/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/org.openmrs.module.xforms.serialization.jar"/>
@@ -15,5 +15,6 @@
 	<classpathentry kind="lib" path="lib-common/hibernate325.jar"/>
 	<classpathentry kind="lib" path="lib-common/commons-fileupload-1.2.1.jar"/>
 	<classpathentry kind="lib" path="lib-common/commons-io-1.4.jar"/>
+	<classpathentry kind="lib" path="lib/com.odkclinic.model.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

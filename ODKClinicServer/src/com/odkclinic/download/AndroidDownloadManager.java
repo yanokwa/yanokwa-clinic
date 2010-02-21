@@ -30,23 +30,24 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.xforms.serialization.Persistent;
 
-import com.odkclinic.model.CohortBundle;
+import com.odkclinic.model.bundle.CohortBundle;
 import com.odkclinic.model.CohortMember;
-import com.odkclinic.model.CohortMemberBundle;
+import com.odkclinic.model.bundle.CohortMemberBundle;
 import com.odkclinic.model.Concept;
-import com.odkclinic.model.ConceptBundle;
+import com.odkclinic.model.bundle.ConceptBundle;
 import com.odkclinic.model.ConceptName;
-import com.odkclinic.model.ConceptNameBundle;
+import com.odkclinic.model.bundle.ConceptNameBundle;
 import com.odkclinic.model.Encounter;
-import com.odkclinic.model.EncounterBundle;
-import com.odkclinic.model.LocationBundle;
+import com.odkclinic.model.bundle.EncounterBundle;
+import com.odkclinic.model.bundle.LocationBundle;
 import com.odkclinic.model.Observation;
-import com.odkclinic.model.ObservationBundle;
-import com.odkclinic.model.PatientBundle;
+import com.odkclinic.model.bundle.ObservationBundle;
+import com.odkclinic.model.bundle.PatientBundle;
 import com.odkclinic.model.PatientProgram;
-import com.odkclinic.model.PatientProgramBundle;
-import com.odkclinic.model.ProgramBundle;
+import com.odkclinic.model.bundle.PatientProgramBundle;
+import com.odkclinic.model.bundle.ProgramBundle;
 import com.odkclinic.server.ODKClinicConstants;
 import com.odkclinic.server.ODKClinicService;
 import com.odkclinic.server.ODKClinicServiceImpl;
@@ -254,9 +255,10 @@ public class AndroidDownloadManager {
 	    EncounterService encounterService = Context.getEncounterService();
         UserService userService = Context.getUserService();
         boolean success = true;
-        List<Encounter> encounters = eb.getBundle();
+        List<Persistent> encounters = eb.getBundle();
         System.out.println(encounters.size());
-        for (Encounter enc : encounters) {
+        for (Persistent enc1 : encounters) {
+            Encounter enc = (Encounter) enc1;
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId());
             if (stateToken == null || revToken > stateToken.getTime()) {
                 User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
@@ -367,8 +369,9 @@ public class AndroidDownloadManager {
         
         Location loc = Context.getLocationService().getLocation(1); //hard-coded unknown location
         
-        List<Observation> observations = ob.getBundle();
-        for (Observation obs : observations) {
+        List<Persistent> observations = ob.getBundle();
+        for (Persistent aObs : observations) {
+            Observation obs = (Observation) aObs;
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId());
                 if (stateToken == null || revToken > stateToken.getTime()) {
                     org.openmrs.Obs inObs = new org.openmrs.Obs();

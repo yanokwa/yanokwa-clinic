@@ -21,9 +21,9 @@ import org.openmrs.api.context.Context;
 import org.openmrs.api.context.ContextAuthenticationException;
 
 import com.odkclinic.download.AndroidDownloadManager;
-import com.odkclinic.model.Bundle;
-import com.odkclinic.model.EncounterBundle;
-import com.odkclinic.model.ObservationBundle;
+import com.odkclinic.model.bundle.Bundle;
+import com.odkclinic.model.bundle.EncounterBundle;
+import com.odkclinic.model.bundle.ObservationBundle;
 import com.odkclinic.server.ODKClinicConstants.Headers;
 
 public class ODKClinicServer
