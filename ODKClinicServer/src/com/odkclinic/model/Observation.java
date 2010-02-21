@@ -145,7 +145,11 @@ public class Observation implements Persistent {
 		setConceptId(SerializationUtils.readInteger(dis));
 		setText(SerializationUtils.readUTF(dis));
 		setDate(SerializationUtils.readDate(dis));
-		setValue(Double.valueOf(SerializationUtils.readUTF(dis)));
+		String value = SerializationUtils.readUTF(dis);
+		if (value != null)
+			setValue(Double.valueOf(value));
+		else
+			setValue(null);
 		setCreator(SerializationUtils.readInteger(dis));
 		setDateCreated(SerializationUtils.readDate(dis));
 		setValueBoolean(SerializationUtils.readBoolean(dis));
