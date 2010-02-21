@@ -21,6 +21,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.openmrs.module.xforms.serialization.Persistent;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -43,26 +45,26 @@ import com.odkclinic.client.db.tables.ProgramTable;
 import com.odkclinic.client.db.tables.SettingsTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
-import com.odkclinic.client.xforms.Cohort;
-import com.odkclinic.client.xforms.CohortBundle;
-import com.odkclinic.client.xforms.CohortMember;
-import com.odkclinic.client.xforms.CohortMemberBundle;
-import com.odkclinic.client.xforms.Concept;
-import com.odkclinic.client.xforms.ConceptBundle;
-import com.odkclinic.client.xforms.ConceptName;
-import com.odkclinic.client.xforms.ConceptNameBundle;
-import com.odkclinic.client.xforms.Encounter;
-import com.odkclinic.client.xforms.EncounterBundle;
-import com.odkclinic.client.xforms.Location;
-import com.odkclinic.client.xforms.LocationBundle;
-import com.odkclinic.client.xforms.Observation;
-import com.odkclinic.client.xforms.ObservationBundle;
-import com.odkclinic.client.xforms.Patient;
-import com.odkclinic.client.xforms.PatientBundle;
-import com.odkclinic.client.xforms.PatientProgram;
-import com.odkclinic.client.xforms.PatientProgramBundle;
-import com.odkclinic.client.xforms.Program;
-import com.odkclinic.client.xforms.ProgramBundle;
+import com.odkclinic.model.Cohort;
+import com.odkclinic.model.CohortMember;
+import com.odkclinic.model.Concept;
+import com.odkclinic.model.ConceptName;
+import com.odkclinic.model.Encounter;
+import com.odkclinic.model.Location;
+import com.odkclinic.model.Observation;
+import com.odkclinic.model.Patient;
+import com.odkclinic.model.PatientProgram;
+import com.odkclinic.model.Program;
+import com.odkclinic.model.bundle.CohortBundle;
+import com.odkclinic.model.bundle.CohortMemberBundle;
+import com.odkclinic.model.bundle.ConceptBundle;
+import com.odkclinic.model.bundle.ConceptNameBundle;
+import com.odkclinic.model.bundle.EncounterBundle;
+import com.odkclinic.model.bundle.LocationBundle;
+import com.odkclinic.model.bundle.ObservationBundle;
+import com.odkclinic.model.bundle.PatientBundle;
+import com.odkclinic.model.bundle.PatientProgramBundle;
+import com.odkclinic.model.bundle.ProgramBundle;
 
 /**
  * Main interface for subset OpenMrs database.
@@ -359,7 +361,8 @@ public class DbAdapter {
      */
     
     public void insertEncounterBundle(EncounterBundle eb) {
-        for (Encounter e: eb.getBundle()) {
+        for (Persistent e1: eb.getBundle()) {
+            Encounter e = (Encounter) e1;
             if (!checkEncounterExists(e.getEncounterId().longValue())) // just delete if it exists already
                 mDb.delete(EncounterTable.TABLE_NAME, EncounterTable.ID.getName() + "=" + e.getEncounterId(), null);
             insertEncounter(e);
@@ -395,7 +398,8 @@ public class DbAdapter {
     
     public void insertObservationBundle(ObservationBundle ob) {
         System.out.println("SIZE OF OB BUNDLE " + ob.getBundle().size());
-        for (Observation o: ob.getBundle()) {
+        for (Persistent o1: ob.getBundle()) {
+            Observation o = (Observation) o1;
             if (checkObservationExists(o.getObsId().longValue()))
                 mDb.delete(ObservationTable.TABLE_NAME, ObservationTable.ID.getName() + "=" + o.getObsId(), null);
             System.out.println(o.getObsId());
@@ -431,7 +435,8 @@ public class DbAdapter {
     }
     
     public void insertProgramBundle(ProgramBundle prb) {
-        for (Program pr: prb.getBundle()) {
+        for (Persistent pr1: prb.getBundle()) {
+            Program pr = (Program) pr1;
             if (checkProgramExists(pr.getProgramId().longValue()))
                 mDb.delete(ProgramTable.TABLE_NAME, ProgramTable.ID.getName() + "=" + pr.getProgramId(), null);
             insertProgram(pr);
@@ -456,7 +461,8 @@ public class DbAdapter {
     }
     
     public void insertPatientProgramBundle(PatientProgramBundle prb) {
-        for (PatientProgram pr: prb.getBundle()) {
+        for (Persistent pr1: prb.getBundle()) {
+            PatientProgram pr = (PatientProgram) pr1;
             //if (checkPatientProgramExists(pr.getPatientProgramId().longValue()))
             //    mDb.delete(PatientProgramTable.TABLE_NAME, PatientProgramTable.ID.getName() + "=" + pr.getPatientProgramId(), null);
             insertPatientProgram(pr);
@@ -482,7 +488,8 @@ public class DbAdapter {
     }
     
     public void insertPatientBundle(PatientBundle pb) {
-        for (Patient p: pb.getBundle()) {
+        for (Persistent p1: pb.getBundle()) {
+            Patient p = (Patient) p1;
             if (checkPatientExists(p.getPatientId().longValue()))
                 mDb.delete(PatientTable.TABLE_NAME, PatientTable.ID.getName() + "=" + p.getPatientId(), null);
             insertPatient(p);
@@ -515,7 +522,8 @@ public class DbAdapter {
     }
     
     public void insertConceptBundle(ConceptBundle pb) {
-        for (Concept p: pb.getBundle()) {
+        for (Persistent p1: pb.getBundle()) {
+            Concept p = (Concept) p1;
             if (checkConceptExists(p.getConceptId().longValue()))
                 mDb.delete(ConceptTable.TABLE_NAME, ConceptTable.ID.getName() + "=" + p.getConceptId(), null);
             insertConcept(p);
@@ -547,7 +555,8 @@ public class DbAdapter {
     }
     
     public void insertLocationBundle(LocationBundle pb) {
-        for (Location p: pb.getBundle()) {
+        for (Persistent p1: pb.getBundle()) {
+            Location p = (Location) p1;
             if (checkLocationExists(p.getLocationId().longValue()))
                 mDb.delete(LocationTable.TABLE_NAME, LocationTable.ID.getName() + "=" + p.getLocationId(), null);
             insertLocation(p);
@@ -576,7 +585,8 @@ public class DbAdapter {
     }
     
     public void insertConceptNameBundle(ConceptNameBundle pb) {
-        for (ConceptName p: pb.getBundle()) {
+        for (Persistent p1: pb.getBundle()) {
+            ConceptName p = (ConceptName) p1;
             if (checkConceptNameExists(p.getConceptNameId().longValue()))
                 mDb.delete(ConceptNameTable.TABLE_NAME, ConceptNameTable.ID.getName() + "=" + p.getConceptNameId(), null);
             insertConceptName(p);
@@ -602,7 +612,8 @@ public class DbAdapter {
     }
     
     public void insertCohortBundle(CohortBundle pb) {
-        for (Cohort p: pb.getBundle()) {
+        for (Persistent p1: pb.getBundle()) {
+            Cohort p = (Cohort) p1;
             if (checkCohortExists(p.getCohortId().longValue()))
                 mDb.delete(CohortTable.TABLE_NAME, CohortTable.ID.getName() + "=" + p.getCohortId(), null);
             insertCohort(p);
@@ -632,7 +643,8 @@ public class DbAdapter {
     }
     
     public void insertCohortMemberBundle(CohortMemberBundle pb) {
-        for (CohortMember p: pb.getBundle()) {
+        for (Persistent p1: pb.getBundle()) {
+            CohortMember p = (CohortMember) p1;
             //if (checkCohortMemberExists(p.getCohortId().longValue()))
             //    mDb.delete(CohortMemberTable.TABLE_NAME, CohortMemberTable.ID.getName() + "=" + p.getCohortMemberId(), null);
             insertCohortMember(p);
@@ -868,12 +880,12 @@ public class DbAdapter {
         StringBuilder sb = new StringBuilder();
         sb.append(ClientEncounterTable.ID.getName());
         sb.append("=");
-        sb.append(eb.getBundle().get(0).getEncounterId());
+        sb.append(((Encounter) eb.getBundle().get(0)).getEncounterId());
         for (int i = 1; i < eb.getBundle().size(); i++) {
             sb.append(" OR ");
             sb.append(ClientEncounterTable.ID.getName());
             sb.append(" = ");
-            sb.append(eb.getBundle().get(i).getEncounterId());
+            sb.append(((Encounter) eb.getBundle().get(i)).getEncounterId());
             sb.append(" ");
         }
         mDb.update(ClientEncounterTable.TABLE_NAME, values, sb.toString(), null);
@@ -885,12 +897,12 @@ public class DbAdapter {
         StringBuilder sb = new StringBuilder();
         sb.append(ClientObservationTable.ID.getName());
         sb.append("=");
-        sb.append(ob.getBundle().get(0).getObsId());
+        sb.append(((Observation) ob.getBundle().get(0)).getObsId());
         for (int i = 1; i < ob.getBundle().size(); i++) {
             sb.append(" OR ");
             sb.append(ClientObservationTable.ID.getName());
             sb.append(" = ");
-            sb.append(ob.getBundle().get(i).getObsId());
+            sb.append(((Observation) ob.getBundle().get(i)).getObsId());
             sb.append(" ");
         }
         mDb.update(ClientObservationTable.TABLE_NAME, values, sb.toString(), null);
@@ -898,7 +910,8 @@ public class DbAdapter {
     
     public void deleteSyncedEncounters(EncounterBundle eb) {
         StringBuilder sb = new StringBuilder();
-        for (Encounter e: eb.getBundle()) {
+        for (Persistent e1: eb.getBundle()) {
+            Encounter e = (Encounter) e1;
             sb.append(" OR ");
             sb.append(ClientEncounterTable.ID.getName());
             sb.append(" = ");
@@ -910,7 +923,8 @@ public class DbAdapter {
     
     public void deleteSyncedObservations(ObservationBundle ob) {
         StringBuilder sb = new StringBuilder();
-        for (Observation o: ob.getBundle()) {
+        for (Persistent o1: ob.getBundle()) {
+            Observation o = (Observation) o1;
             sb.append(" OR ");
             sb.append(ClientObservationTable.ID.getName());
             sb.append(" = ");
