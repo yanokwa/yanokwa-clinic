@@ -45,7 +45,10 @@
 		    FOR EACH ROW
 			UPDATE odkclinic_encounter SET odkclinic_encounter.revision_token = NOW() 
 			WHERE NEW.encounter_id = odkclinic_encounter.id;
-			
+		
+		<!-- unretire NOTES -->
+		UPDATE concept SET retired = 0 WHERE concept_id = 5097;
+		 
         INSERT INTO cohort(cohort_id,name,creator,voided,date_created,uuid) VALUES(1,'PRIME',1,0,'2009-06-02 00:00:00','wakka-wakka-wakka'); 
         INSERT INTO cohort_member(cohort_id,patient_id) VALUES(1,2); 
         INSERT INTO cohort_member(cohort_id,patient_id) VALUES(1,3); 
@@ -67,6 +70,8 @@
         INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(10,2,5,1,'nope nope'); 
 		INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(11,3,4,1,'yes sir');
 		INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(12,3,5,1,'no sir');  
+		
+		IN
         
         <!-- 
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_numeric,creator,voided,observation_date_created,isUpdate) VALUES(2,1,4,1,110,1,0,'2009-04-23 00:00:00', 1); 
