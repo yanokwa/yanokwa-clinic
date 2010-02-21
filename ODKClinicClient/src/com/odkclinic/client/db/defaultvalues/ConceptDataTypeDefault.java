@@ -5,9 +5,9 @@ import com.odkclinic.client.db.tables.ConceptDataTypeTable;
 
 public enum ConceptDataTypeDefault
 {
-    BOOLEAN(10, "BOOLEAN", "BIT", ""), 
-    NUMERIC(1, "NUMERIC", "NM", ""), 
-    TEXT(3, "TEXT", "ST", "");
+    BOOLEAN(10, "BOOLEAN", "BIT", "BOOL"), 
+    NUMERIC(1, "NUMERIC", "NM", "NUM"), 
+    TEXT(3, "TEXT", "ST", "TEXT");
 
     public static final String TABLE = ConceptDataTypeTable.TABLE_NAME;
 
