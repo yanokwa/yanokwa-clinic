@@ -290,16 +290,21 @@ public class AndroidDownloadManager {
 		Cohort cohort = cService.getCohort(1);
 		if (cohort != null) {
             Set<Integer> patients = cohort.getPatientIds();
+            System.out.println("NUMBER OF PATIENTS (ENC): " + patients.size());
     		EncounterService encounterService = Context.getEncounterService();
     		if (patients != null && patients.size() > 0) {
     		    PatientService pService = Context.getPatientService();
     			for (Integer patientId : patients) {
     				List<org.openmrs.Encounter> encounters = encounterService.getEncounters(pService.getPatient(patientId),
-    													null, new Date(revToken), null, null, null, false);
+    													null, /*new Date(revToken)*/null, null, null, null, false);
+    				System.out.println("NUMBER OF ENCOUNTERS: " + encounters.size());
     				//List<org.openmrs.Encounter> encounters = encounterService.getEncountersByPatientId(patientId);
     				for (org.openmrs.Encounter inEncounter : encounters) {
     					Integer encounterId = inEncounter.getEncounterId();
-    					Integer encounterType = inEncounter.getEncounterType().getEncounterTypeId();
+    					EncounterType type = inEncounter.getEncounterType();
+    					Integer encounterType = null;
+    					if (type != null)
+    						encounterType = type.getEncounterTypeId();
     					Integer providerId = inEncounter.getProvider().getUserId();
     					Integer locationId = inEncounter.getLocation().getLocationId();
     					Date dateCreated = inEncounter.getDateCreated();
@@ -357,6 +362,9 @@ public class AndroidDownloadManager {
         ConceptService conceptService = Context.getConceptService();
         PatientService patientService = Context.getPatientService();
         boolean success = true;
+        
+        Location loc = Context.getLocationService().getLocation(1); //hard-coded unknown location
+        
         List<Observation> observations = ob.getBundle();
         for (Observation obs : observations) {
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId());
@@ -371,6 +379,7 @@ public class AndroidDownloadManager {
                     inObs.setValueNumeric(obs.getValue());
                     inObs.setDateCreated(obs.getDateCreated() == null ? new Date() : obs.getDateCreated());
                     inObs.setPerson(patientService.getPatient(obs.getPatientId()));
+                    inObs.setLocation(loc);
                 try {
                     obsService.createObs(inObs);
                     //obsService.saveObs(inObs, "Changed/added by android phone");
@@ -399,14 +408,20 @@ public class AndroidDownloadManager {
         if (cohort != null)
         {
             Set<Integer> patients = cohort.getPatientIds();
+            System.out.println("NUMBER OF PATIENTS (OBS) " + patients.size());
             for (Integer patientId : patients)
             {
                 Patient patient = pService.getPatient(patientId);
                 List<Person> person = new ArrayList<Person>();
                 person.add(patient);
-                List<org.openmrs.Obs> obs = obsService
+                /*List<org.openmrs.Obs> obs = obsService
                         .getObservations(person, null, null, null, null, null, null, null, null, new Date(
                                 revToken), null, false);
+                */
+                List<org.openmrs.Obs> obs = obsService
+                .getObservations(person, null, null, null, null, null, null, null, null, null, null, false);
+                System.out.println("NUMER OF OBS " + obs.size());
+                
                 for (org.openmrs.Obs inObs : obs)
                 {
                     Observation outObs = new Observation();
@@ -436,6 +451,7 @@ public class AndroidDownloadManager {
 		PatientService pService = Context.getPatientService();
 		CohortService cService = Context.getCohortService();
 		Set<Integer> patients = cService.getCohort(1).getPatientIds(); //TODO unhard-code cohort number
+		log.debug("NUMBER OF PATIENTS " + patients.size());
 		for (Integer patientId : patients) {
 			org.openmrs.Patient patient = pService.getPatient(patientId);
 			com.odkclinic.model.Patient outPat = new com.odkclinic.model.Patient();
