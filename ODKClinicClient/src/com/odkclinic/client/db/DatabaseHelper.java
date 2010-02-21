@@ -16,6 +16,7 @@
 
 package com.odkclinic.client.db;
 
+import com.odkclinic.client.db.defaultvalues.ConceptDataTypeDefault;
 import com.odkclinic.client.db.defaultvalues.SettingsDefault;
 import com.odkclinic.client.db.tables.OpenMRS;
 import com.odkclinic.client.db.tables.views.EncounterView;
@@ -51,6 +52,9 @@ class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(EncounterView.getCreateStatement());
         db.execSQL(ObservationView.getCreateStatement());
         for (String insertString: SettingsDefault.getInsertStatements()) {
+            db.execSQL(insertString);
+        }
+        for (String insertString: ConceptDataTypeDefault.getInsertStatements()) {
             db.execSQL(insertString);
         }
     }

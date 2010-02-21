@@ -75,7 +75,7 @@ public enum OpenMRS {
              SettingsTable.COLUMNS_TYPE);
 	
 	public static final String DATABASE_NAME = "openmrsdata";
-	public static final int DATABASE_VERSION = 3;
+	public static final int DATABASE_VERSION = 4;
 	public static final String TAG = "DbAdapter";
 	
 	public final String TABLE_NAME;
