@@ -158,7 +158,10 @@ public class Observation implements Persistent {
 		SerializationUtils.writeInteger(dos, getConceptId());
 		SerializationUtils.writeUTF(dos, getText());
 		SerializationUtils.writeDate(dos, getDate());
-		SerializationUtils.writeUTF(dos, getValue().toString());
+		if (getValue() != null)
+			SerializationUtils.writeUTF(dos, getValue().toString());
+		else
+			SerializationUtils.writeUTF(dos, null);
 		SerializationUtils.writeInteger(dos, getCreator());
 		SerializationUtils.writeDate(dos, getDateCreated());
 		SerializationUtils.writeBoolean(dos, getValueBoolean());
