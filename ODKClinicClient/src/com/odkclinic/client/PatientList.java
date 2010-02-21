@@ -17,18 +17,14 @@
 package com.odkclinic.client;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 import org.apache.http.HttpEntity;
@@ -62,16 +58,16 @@ import android.widget.Toast;
 import com.odkclinic.client.db.DbAdapter;
 import com.odkclinic.client.db.tables.CohortMemberTable;
 import com.odkclinic.client.db.tables.PatientTable;
-import com.odkclinic.client.xforms.CohortBundle;
-import com.odkclinic.client.xforms.CohortMemberBundle;
-import com.odkclinic.client.xforms.ConceptBundle;
-import com.odkclinic.client.xforms.ConceptNameBundle;
-import com.odkclinic.client.xforms.EncounterBundle;
-import com.odkclinic.client.xforms.LocationBundle;
-import com.odkclinic.client.xforms.ObservationBundle;
-import com.odkclinic.client.xforms.PatientBundle;
-import com.odkclinic.client.xforms.PatientProgramBundle;
-import com.odkclinic.client.xforms.ProgramBundle;
+import com.odkclinic.model.bundle.CohortBundle;
+import com.odkclinic.model.bundle.CohortMemberBundle;
+import com.odkclinic.model.bundle.ConceptBundle;
+import com.odkclinic.model.bundle.ConceptNameBundle;
+import com.odkclinic.model.bundle.EncounterBundle;
+import com.odkclinic.model.bundle.LocationBundle;
+import com.odkclinic.model.bundle.ObservationBundle;
+import com.odkclinic.model.bundle.PatientBundle;
+import com.odkclinic.model.bundle.PatientProgramBundle;
+import com.odkclinic.model.bundle.ProgramBundle;
 
 /**
  * 
