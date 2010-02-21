@@ -299,7 +299,7 @@ public class ConceptHistory extends Activity implements com.odkclinic.client.gra
     		dataString += "[";
     		//fill in the date
     		long date;
-    		String dateString = c.getString(c.getColumnIndexOrThrow(ObservationTable.DATE_CREATED.getName()));
+    		String dateString = c.getString(c.getColumnIndexOrThrow(ObservationTable.DATETIME.getName()));
     		try{
     		// parse in special format for new dates in system
     		date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(dateString).getTime();

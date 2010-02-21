@@ -394,9 +394,11 @@ public class DbAdapter {
     }
     
     public void insertObservationBundle(ObservationBundle ob) {
+        System.out.println("SIZE OF OB BUNDLE " + ob.getBundle().size());
         for (Observation o: ob.getBundle()) {
             if (checkObservationExists(o.getObsId().longValue()))
                 mDb.delete(ObservationTable.TABLE_NAME, ObservationTable.ID.getName() + "=" + o.getObsId(), null);
+            System.out.println(o.getObsId());
             insertObservation(o);
         }
     }
@@ -412,7 +414,8 @@ public class DbAdapter {
      */
     public void insertObservation(Observation o) {
     	ContentValues values = new ContentValues();
-    	values.put(ObservationTable.ID.getName(), o.getEncounterId());
+    	values.put(ObservationTable.ID.getName(), o.getObsId());
+    	values.put(ObservationTable.ENCOUNTER_ID.getName(), o.getEncounterId());
     	values.put(ObservationTable.CONCEPT_ID.getName(), o.getConceptId());
     	values.put(ObservationTable.PATIENT_ID.getName(), o.getPatientId());
     	values.put(ObservationTable.NUMERIC.getName(), o.getValue());
@@ -539,6 +542,7 @@ public class DbAdapter {
         values.put(ConceptTable.CREATOR.getName(), p.getCreator());
         Date date = p.getDateCreated();
         values.put(ConceptTable.DATE_CREATED.getName(), date != null ? mDateFormat.format(date) : mZeroDate);
+        values.put(ConceptTable.VOIDED.getName(), 0);
         mDb.insert(ConceptTable.TABLE_NAME, null, values);
     }
     
