@@ -32,20 +32,21 @@ import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.xforms.serialization.Persistent;
 
-import com.odkclinic.model.bundle.CohortBundle;
 import com.odkclinic.model.CohortMember;
-import com.odkclinic.model.bundle.CohortMemberBundle;
 import com.odkclinic.model.Concept;
-import com.odkclinic.model.bundle.ConceptBundle;
 import com.odkclinic.model.ConceptName;
-import com.odkclinic.model.bundle.ConceptNameBundle;
 import com.odkclinic.model.Encounter;
+import com.odkclinic.model.Observation;
+import com.odkclinic.model.PatientProgram;
+import com.odkclinic.model.bundle.Bundle;
+import com.odkclinic.model.bundle.CohortBundle;
+import com.odkclinic.model.bundle.CohortMemberBundle;
+import com.odkclinic.model.bundle.ConceptBundle;
+import com.odkclinic.model.bundle.ConceptNameBundle;
 import com.odkclinic.model.bundle.EncounterBundle;
 import com.odkclinic.model.bundle.LocationBundle;
-import com.odkclinic.model.Observation;
 import com.odkclinic.model.bundle.ObservationBundle;
 import com.odkclinic.model.bundle.PatientBundle;
-import com.odkclinic.model.PatientProgram;
 import com.odkclinic.model.bundle.PatientProgramBundle;
 import com.odkclinic.model.bundle.ProgramBundle;
 import com.odkclinic.server.ODKClinicConstants;
@@ -66,168 +67,76 @@ public class AndroidDownloadManager {
 
 	private static Log log = LogFactory.getLog(AndroidDownloadManager.class);
 	
-		/**
-		 * Retrieves all programs, bundles them, and sends them through the OutputStream
-		 * @param os
-		 * @param serializerKey (no use)
-		 * @return true if successful, false otherwise
-		 */
-	public static boolean downloadPrograms(OutputStream os, String serializerKey) {
-		ProgramBundle bundle = getPrograms();
-		
-		try {
-		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS);
-			bundle.write((DataOutputStream)os);			
-		} catch (IOException e) {
-			log.error("odkclinic download failed", e);
-			return false;
-		}
-		
-		return true;
-	}
-	/**
-	 * Retrieves all patients, bundles them, and sends them through the OutputStream
-	 * @param os
-	 * @param serializerKey (no use)
-	 * @return true if successful, false otherwise
-	 */
-	public static boolean downloadPatients(OutputStream os, String serializerKey) {
-		PatientBundle bundle = getPatients();
-		
-		try {
-		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS);
-			bundle.write((DataOutputStream) os);
-		} catch  (IOException e) {
-			log.error("odkclinic download failed", e);
-			return false;
-		}
-		
-		return true;
-	}
-	/**
-	 * Retrieves all encounters, bundles them, and sends them through the OutputStream
-	 * @param os
-	 * @param serializerKey (no use)
-	 * @return true if successful, false otherwise
-	 */
-	public static boolean downloadEncounters(OutputStream os, String serializerKey, long revToken) {
-		EncounterBundle bundle = getEncounters(revToken);
-		
-		try {
-		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER);
-			bundle.write((DataOutputStream)os);
-		} catch (IOException e) {
-			log.error("odkclinic download failed", e);
-			return false;
-		}
-		return true;
-	}
-	/**
-	 * Retrieves all observations, bundles them, and sends them through the OutputStream
-	 * @param os
-	 * @param serializerKey (no use)
-	 * @return true if successful, false otherwise
-	 */
-	public static boolean downloadObservations(OutputStream os, String serializerKey, long revToken) {
-		ObservationBundle bundle = getObservations(revToken);
-		
-		try {
-		    ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS);
-			bundle.write((DataOutputStream)os);
-		} catch (IOException e) {
-			log.error("odkclinic download failed", e);
-			return false;
-		}
-		
-		return true;
-	}
-	
-	public static boolean downloadConcepts(OutputStream os, String serializerKey) {
-	    ConceptBundle bundle = getConcepts();
+	public static boolean downloadBundle(DataOutputStream dos, int action, long revToken) {
+        Bundle<?> bundle = null;
+        switch (action) {
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS:
+                bundle = getPrograms();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS:
+                bundle = getCohortMembers();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS:
+                bundle = getCohorts();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES:
+                bundle = getConceptNames();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS:
+                bundle = getConcepts();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS:
+                bundle = getCohortMembers();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS:
+                bundle = getObservations(revToken);
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER:
+                bundle = getEncounters(revToken);
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS:
+                bundle = getPatients();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS:
+                bundle = getPatientPrograms();
+                break;
+            
+        }
+       
         try {
-            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS);
-            bundle.write((DataOutputStream)os);
+            dos.writeByte(action);
+            bundle.write(dos);           
         } catch (IOException e) {
             log.error("odkclinic download failed", e);
             return false;
         }
-        
-        return true;
-	}
-	public static boolean downloadPatientPrograms(OutputStream os, String serializerKey) {
-        PatientProgramBundle bundle = getPatientPrograms();
-        try {
-            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS);
-            bundle.write((DataOutputStream)os);
-        } catch (IOException e) {
-            log.error("odkclinic download failed", e);
-            return false;
-        }
-        
         return true;
     }
 	
-	public static boolean downloadLocations(OutputStream os, String serializerKey) {
-        LocationBundle bundle = getLocations();
-        try {
-            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS);
-            bundle.write((DataOutputStream)os);
-        } catch (IOException e) {
-            log.error("odkclinic download failed", e);
-            return false;
-        }
-        
-        return true;
-    }
-	
-	public static boolean downloadConceptNames(OutputStream os, String serializerKey) {
-        ConceptNameBundle bundle = getConceptNames();
-        try {
-            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES);
-            bundle.write((DataOutputStream)os);
-        } catch (IOException e) {
-            log.error("odkclinic download failed", e);
-            return false;
-        }
-        
-        return true;
-    }
-	
-	public static boolean downloadCohortMembers(OutputStream os, String serializerKey) {
-        CohortMemberBundle bundle = getCohortMembers();
-        try {
-            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS);
-            bundle.write((DataOutputStream)os);
-        } catch (IOException e) {
-            log.error("odkclinic download failed", e);
-            return false;
-        }
-        
-        return true;
-    }
-	
-	public static boolean downloadCohorts(OutputStream os, String serializerKey) {
-        CohortBundle bundle = getCohorts();
-        try {
-            ((DataOutputStream)os).writeByte(ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS);
-            bundle.write((DataOutputStream)os);
-        } catch (IOException e) {
-            log.error("odkclinic download failed", e);
-            return false;
-        }
-        
-        return true;
-    }
 	
 	/**
-	 * Retrieves encounters from InputStream
+	 * Retrieves bundle from InputStream
 	 * @param is
-	 * @param serializerKey
+	 * @param action
 	 * @return true if successful, false otherwise
 	 */
-	public static EncounterBundle uploadEncounters(InputStream is, String serializerKey) {
-		EncounterBundle bundle = new EncounterBundle();
+	public static Bundle<?> uploadBundle(InputStream is, int action) {
+		Bundle<?> bundle = null;
+	    switch (action) {
+		    case ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER:
+		        bundle = new EncounterBundle();
+		        break;
+		    case ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS:
+		        bundle = new ObservationBundle();
+		        break;
+		        
+		}
+		
+		if (bundle == null)
+		    return null;
+		
 		boolean success = false;
+		
 		try {
 			bundle.read((DataInputStream)is);
 			success = true;
@@ -237,7 +146,7 @@ public class AndroidDownloadManager {
 			log.error("odkclinic upload failed", e);
 		} catch (IllegalAccessException e) {
 			log.error("odkclinic upload failed", e);
-		}
+		} 
 		if (success)
 		    return bundle;
 		else 
@@ -255,10 +164,9 @@ public class AndroidDownloadManager {
 	    EncounterService encounterService = Context.getEncounterService();
         UserService userService = Context.getUserService();
         boolean success = true;
-        List<Persistent> encounters = eb.getBundle();
+        List<Encounter> encounters = eb.getBundle();
         System.out.println(encounters.size());
-        for (Persistent enc1 : encounters) {
-            Encounter enc = (Encounter) enc1;
+        for (Encounter enc: encounters) {
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId());
             if (stateToken == null || revToken > stateToken.getTime()) {
                 User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
@@ -327,33 +235,6 @@ public class AndroidDownloadManager {
 	}
 	
 	/**
-	 * Retrieves observations from InputStream
-	 * @param is
-	 * @param serializerKey
-	 * @return Observation bundle if successful, null otherwise
-	 */
-	public static ObservationBundle uploadObservations(InputStream is, String serializerKey) {
-	
-		ObservationBundle bundle = new ObservationBundle();
-		boolean success = false;
-		try {
-			bundle.read((DataInputStream)is);
-			success = true;
-		} catch (IOException e) {
-			log.error("odkclinic upload failed", e);
-		} catch (InstantiationException e) {
-			log.error("odkclinic upload failed", e);
-		} catch (IllegalAccessException e) {
-			log.error("odkclinic upload failed", e);
-		}
-		
-		if (success) 
-		    return bundle;
-		else 
-		    return null;
-	}
-	
-	/**
 	 * Saves given observations to server database.
 	 * @param ob
 	 * @param revToken
@@ -369,9 +250,8 @@ public class AndroidDownloadManager {
         
         Location loc = Context.getLocationService().getLocation(1); //hard-coded unknown location
         
-        List<Persistent> observations = ob.getBundle();
-        for (Persistent aObs : observations) {
-            Observation obs = (Observation) aObs;
+        List<Observation> observations = ob.getBundle();
+        for (Observation obs : observations) {
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId());
                 if (stateToken == null || revToken > stateToken.getTime()) {
                     org.openmrs.Obs inObs = new org.openmrs.Obs();
@@ -511,7 +391,6 @@ public class AndroidDownloadManager {
 	    if (mConceptDTs == null) {
     	    ConceptService cService = Context.getConceptService();
     	    mConceptDTs = new HashSet<org.openmrs.ConceptDatatype>();
-    	    
     	    mConceptDTs.add(cService.getConceptDatatype(1));
     	    mConceptDTs.add(cService.getConceptDatatype(3));
     	    mConceptDTs.add(cService.getConceptDatatype(10));
