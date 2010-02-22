@@ -39,7 +39,7 @@ import com.odkclinic.client.db.tables.views.ObservationView;
 public class DbConstants {
 	
 	public static String UPDATE_COUNT = "update_count";
-	public static int NOTES_CONCEPT_ID = 6100;
+	public static int NOTES_CONCEPT_ID = 6100; //TODO: fix dependency on this
     /**
      * Triggers
      */
