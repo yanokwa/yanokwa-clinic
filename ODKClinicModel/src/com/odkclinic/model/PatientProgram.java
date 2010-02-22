@@ -25,59 +25,61 @@ import org.openmrs.module.xforms.serialization.SerializationUtils;
 
 /**
  * @author Euzel Villanueva
- *
+ * 
  */
 public class PatientProgram implements Persistent {
 
-    private Integer patientProgramId;
+	private Integer patientProgramId;
 	private Integer programId;
 	private Integer patientId;
-	
-	public PatientProgram(Integer patientId, Integer programId, Integer patientProgramId) {
+
+	public PatientProgram(Integer patientId, Integer programId,
+			Integer patientProgramId) {
 		this.patientId = patientId;
 		this.programId = programId;
 		this.patientProgramId = patientProgramId;
 	}
-	
+
 	public PatientProgram() {
 		this(null, null, null);
 	}
-	
+
 	public Integer getPatientProgramId() {
 		return patientProgramId;
 	}
-	
+
 	public void setPatientProgramId(Integer patientProgramId) {
 		this.patientProgramId = patientProgramId;
 	}
-	
+
 	public Integer getProgramId() {
-        return programId;
-    }
-    
-    public void setProgramId(Integer programId) {
-        this.programId = programId;
-    }
-	
+		return programId;
+	}
+
+	public void setProgramId(Integer programId) {
+		this.programId = programId;
+	}
+
 	public Integer getPatientId() {
 		return patientId;
 	}
-	
+
 	public void setPatientId(Integer patientId) {
 		this.patientId = patientId;
 	}
-	
+
 	@Override
 	public void read(DataInputStream dis) throws IOException,
 			InstantiationException, IllegalAccessException {
 		setProgramId(SerializationUtils.readInteger(dis));
-		setPatientId(SerializationUtils.readInteger(dis));		
+		setPatientId(SerializationUtils.readInteger(dis));
 	}
+
 	@Override
 	public void write(DataOutputStream dos) throws IOException {
 		SerializationUtils.writeInteger(dos, programId);
 		SerializationUtils.writeInteger(dos, patientId);
-		
+
 	}
 
 }
