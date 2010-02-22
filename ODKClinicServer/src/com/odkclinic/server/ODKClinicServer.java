@@ -118,8 +118,7 @@ public class ODKClinicServer
         if (isNull(user, skey, pass, revToken))
         {
             responseStatus = ODKClinicConstants.STATUS_ERROR;
-            System.out
-                    .println("Failed gettings parts from multipart stream: Element is null");
+            log.error("Failed gettings parts from multipart stream: Element is null");
         } else
         {
             try
@@ -139,8 +138,7 @@ public class ODKClinicServer
 
                 if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                 {
-                    Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(
-                            UploadType.class);
+                    Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(UploadType.class);
 
                     while (current == Headers.UPLOAD_ENCOUNTER
                             || current == Headers.UPLOAD_OBSERVATION)
@@ -148,22 +146,18 @@ public class ODKClinicServer
                         Bundle<?> bundle = null;
                         ByteArrayOutputStream data = new ByteArrayOutputStream();
                         multipartStream.readBodyData(data);
-
+                        DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data.toByteArray()));
                         switch (current)
                         {
                             case UPLOAD_ENCOUNTER:
-                                bundle = uploadEncounters(new DataInputStream(
-                                        new ByteArrayInputStream(data
-                                                .toByteArray())), skey);
+                                bundle = uploadEncounters(dis);
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Encounters, bundle);
                                 }
                                 break;
                             case UPLOAD_OBSERVATION:
-                                bundle = uploadObservations(new DataInputStream(
-                                        new ByteArrayInputStream(data
-                                                .toByteArray())), skey);
+                                bundle = uploadObservations(dis);
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Observations, bundle);
@@ -280,34 +274,31 @@ public class ODKClinicServer
         return true;
     }
 
-    private void downloadEncounters(OutputStream os, String serializerKey,
+    private void downloadEncounters(DataOutputStream os, String serializerKey,
             long revToken) throws Exception
     {
 
-        AndroidDownloadManager.downloadEncounters(os, serializerKey, revToken);
+        AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER, revToken);
 
     }
 
-    private EncounterBundle uploadEncounters(DataInputStream is,
-            String serializerKey) throws IOException
+    private Bundle<?> uploadEncounters(DataInputStream is) throws IOException
     {
-        return AndroidDownloadManager.uploadEncounters(is, serializerKey);
+        return AndroidDownloadManager.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER);
     }
 
-    private void downloadObservations(OutputStream os, String serializerKey,
+    private void downloadObservations(DataOutputStream os, String serializerKey,
             long revToken) throws Exception
     {
 
-        AndroidDownloadManager
-                .downloadObservations(os, serializerKey, revToken);
+        AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS, revToken);
 
     }
 
-    private ObservationBundle uploadObservations(DataInputStream is,
-            String serializerKey) throws IOException
+    private Bundle<?> uploadObservations(DataInputStream is) throws IOException
     {
 
-        return AndroidDownloadManager.uploadObservations(is, serializerKey);
+        return AndroidDownloadManager.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS);
 
     }
 
@@ -315,7 +306,7 @@ public class ODKClinicServer
             throws Exception
     {
 
-        AndroidDownloadManager.downloadPatients(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS, 0);
 
     }
 
@@ -323,32 +314,32 @@ public class ODKClinicServer
             throws Exception
     {
 
-        AndroidDownloadManager.downloadPrograms(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
 
     }
     
     private void downloadConcepts(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadConcepts(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS, 0);
     }
     
     private void downloadConceptNames(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadConceptNames(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES, 0);
     }
     
     private void downloadCohorts(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadCohorts(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos,ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS, 0);
     }
     
     private void downloadCohortMembers(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadCohortMembers(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS, 0);
     }
     
     private void downloadLocations(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadLocations(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS, 0);
     }
     
     private void downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadPatientPrograms(dos, serializerKey);
+        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
     }
 
 }
