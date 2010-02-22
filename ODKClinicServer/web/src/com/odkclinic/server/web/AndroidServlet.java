@@ -29,7 +29,7 @@ public class AndroidServlet extends HttpServlet {
 			new ODKClinicServer().handleStreams(request, response);
 		}
 		catch(Exception e){
-			log.error(e.getMessage(),e);
+			log.error("Error during synchronization with client.",e);
 		}
 	}
 }

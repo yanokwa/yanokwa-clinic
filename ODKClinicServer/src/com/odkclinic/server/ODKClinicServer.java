@@ -81,11 +81,7 @@ public class ODKClinicServer
         Headers current = Headers.USER;
         while (nextPart)
         {
-            String headers = multipartStream.readHeaders();
-            headers = headers.split(";")[1];
-            headers = headers.split("name=")[1];
-            headers = headers.trim();
-            headers = headers.substring(1, headers.length() - 1);
+            String headers = parseHeader(multipartStream.readHeaders());
             boolean getOut = false;
             current = Headers.valueOf(headers);
             System.out.println(headers);
@@ -130,18 +126,20 @@ public class ODKClinicServer
                 } catch (ContextAuthenticationException e)
                 {
                     responseStatus = ODKClinicConstants.STATUS_ACCESS_DENIED;
-                    e.printStackTrace();
+                    log.error(String.format("Failed to authenticate user: %s with pass %s", user, pass), e);
                 } catch (Exception e)
                 {
                     responseStatus = ODKClinicConstants.STATUS_ERROR;
+                    log.error("Serious error occured with authentication.", e);
                 }
 
                 if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                 {
                     Map<UploadType, Bundle<?>> map = new EnumMap<UploadType, Bundle<?>>(UploadType.class);
 
-                    while (current == Headers.UPLOAD_ENCOUNTER
-                            || current == Headers.UPLOAD_OBSERVATION)
+                    while ((current == Headers.UPLOAD_ENCOUNTER
+                            || current == Headers.UPLOAD_OBSERVATION) &&
+                            responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                     {
                         Bundle<?> bundle = null;
                         ByteArrayOutputStream data = new ByteArrayOutputStream();
@@ -154,6 +152,9 @@ public class ODKClinicServer
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Encounters, bundle);
+                                } else 
+                                {
+                                    responseStatus = ODKClinicConstants.STATUS_ERROR;
                                 }
                                 break;
                             case UPLOAD_OBSERVATION:
@@ -161,16 +162,15 @@ public class ODKClinicServer
                                 if (bundle != null)
                                 {
                                     map.put(UploadType.Observations, bundle);
+                                } else 
+                                {
+                                    responseStatus = ODKClinicConstants.STATUS_ERROR;
                                 }
                                 break;
                         }
 
                         multipartStream.readBoundary();
-                        String headers = multipartStream.readHeaders();
-                        headers = headers.split(";")[1];
-                        headers = headers.split("name=")[1];
-                        headers = headers.trim();
-                        headers = headers.substring(1, headers.length() - 1);
+                        String headers = parseHeader(multipartStream.readHeaders());
                         current = Headers.valueOf(headers);
 
                     }
@@ -187,44 +187,53 @@ public class ODKClinicServer
 
                             for (String action : actions)
                             {
+                                boolean success = false;
                                 switch (Headers.valueOf(action))
                                 {
                                     case DOWNLOAD_ENCOUNTER:
-                                        downloadEncounters(dos, skey, revToken);
+                                        success = downloadEncounters(dos, skey, revToken);
                                         break;
                                     case DOWNLOAD_PATIENT:
-                                        downloadPatients(dos, skey);
+                                        success = downloadPatients(dos, skey);
                                         break;
                                     case DOWNLOAD_PROGRAM:
-                                        downloadPrograms(dos, skey);
+                                        success = downloadPrograms(dos, skey);
                                         break;
                                     case DOWNLOAD_OBSERVATION:
-                                        downloadObservations(dos, skey, revToken);
+                                        success = downloadObservations(dos, skey, revToken);
                                         break;
                                     case DOWNLOAD_LOCATION:
-                                        downloadLocations(dos, skey);
+                                        success = downloadLocations(dos, skey);
                                         break;
                                     case DOWNLOAD_PATIENTPROGRAM:
-                                        downloadPatientPrograms(dos, skey);
+                                        success = downloadPatientPrograms(dos, skey);
                                         break;
                                     case DOWNLOAD_CONCEPTNAME:
-                                        downloadConceptNames(dos, skey);
+                                        success = downloadConceptNames(dos, skey);
                                         break;
                                     case DOWNLOAD_COHORT:
-                                        downloadCohorts(dos, skey);
+                                        success = downloadCohorts(dos, skey);
                                         break;
                                     case DOWNLOAD_COHORTMEMBER:
-                                        downloadCohortMembers(dos, skey);
+                                        success = downloadCohortMembers(dos, skey);
                                         break;
                                     case DOWNLOAD_CONCEPT:
-                                        downloadConcepts(dos, skey);
+                                        success = downloadConcepts(dos, skey);
                                         break;
+                                }
+                                if (!success) {
+                                    responseStatus = ODKClinicConstants.STATUS_ERROR;
+                                    break;
                                 }
                             }
                         } else
                         {
                             responseStatus = ODKClinicConstants.STATUS_ERROR;
+                            log.error("Failed committing bundles from client to database.");
                         }
+                    } else {
+                        responseStatus = ODKClinicConstants.STATUS_ERROR;
+                        log.error("Failed getting bundles from client.");
                     }
                 }
             } finally
@@ -233,19 +242,22 @@ public class ODKClinicServer
 
             }
         }
-
-        if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
-        {
-            response.setStatus(200);
-            byte[] bytes = baos.toByteArray();
-            OutputStream os = response.getOutputStream();
-            System.out.println(bytes.length);
-            os.write(bytes);
-            os.flush();
-            os.close();
-        } else
-        {
-            response.setStatus(500);
+        switch (responseStatus) {
+            case ODKClinicConstants.STATUS_SUCCESS:
+                response.setStatus(HttpServletResponse.SC_OK);
+                byte[] bytes = baos.toByteArray();
+                OutputStream os = response.getOutputStream();
+                System.out.println(bytes.length);
+                os.write(bytes);
+                os.flush();
+                os.close();
+                break;
+            case ODKClinicConstants.STATUS_ACCESS_DENIED:
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                break;
+            case ODKClinicConstants.STATUS_ERROR:
+                response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                break;
         }
     }
 
@@ -273,13 +285,17 @@ public class ODKClinicServer
         }
         return true;
     }
-
-    private void downloadEncounters(DataOutputStream os, String serializerKey,
+    private String parseHeader(String value) {
+        String headers = value.split(";")[1];
+        headers = headers.split("name=")[1];
+        headers = headers.trim();
+        headers = headers.substring(1, headers.length() - 1);
+        return headers;
+    }
+    private boolean downloadEncounters(DataOutputStream os, String serializerKey,
             long revToken) throws Exception
     {
-
-        AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER, revToken);
-
+       return AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER, revToken);
     }
 
     private Bundle<?> uploadEncounters(DataInputStream is) throws IOException
@@ -287,59 +303,50 @@ public class ODKClinicServer
         return AndroidDownloadManager.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER);
     }
 
-    private void downloadObservations(DataOutputStream os, String serializerKey,
+    private boolean downloadObservations(DataOutputStream os, String serializerKey,
             long revToken) throws Exception
     {
-
-        AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS, revToken);
-
+        return AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS, revToken);
     }
 
     private Bundle<?> uploadObservations(DataInputStream is) throws IOException
     {
-
         return AndroidDownloadManager.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS);
-
     }
 
-    private void downloadPatients(DataOutputStream dos, String serializerKey)
+    private boolean downloadPatients(DataOutputStream dos, String serializerKey)
             throws Exception
     {
-
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS, 0);
-
+       return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS, 0);
     }
 
-    private void downloadPrograms(DataOutputStream dos, String serializerKey)
+    private boolean downloadPrograms(DataOutputStream dos, String serializerKey)
             throws Exception
     {
-
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
-
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
     }
     
-    private void downloadConcepts(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS, 0);
+    private boolean downloadConcepts(DataOutputStream dos,String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS, 0);
     }
     
-    private void downloadConceptNames(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES, 0);
+    private boolean downloadConceptNames(DataOutputStream dos,String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES, 0);
     }
     
-    private void downloadCohorts(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadBundle(dos,ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS, 0);
+    private boolean downloadCohorts(DataOutputStream dos,String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos,ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS, 0);
     }
     
-    private void downloadCohortMembers(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS, 0);
+    private boolean downloadCohortMembers(DataOutputStream dos,String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS, 0);
     }
     
-    private void downloadLocations(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS, 0);
+    private boolean downloadLocations(DataOutputStream dos,String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS, 0);
     }
     
-    private void downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
-        AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
+    private boolean downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
     }
-
 }
