@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2009 University of Washington
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
 package com.odkclinic.model;
 
 import java.io.DataInputStream;
@@ -8,17 +23,22 @@ import java.util.Date;
 import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
+/**
+ * 
+ * @author Euzel Villanueva
+ *
+ */
 public class Patient implements Persistent {
-	Integer patientId;
-	String gender;
-	String race;
-	Date birth;
-	Integer dead;
-	String birthplace;
-	Double height;
-	Double weight;
-	String name;
-	
+	private Integer patientId;
+	private String gender;
+	private String race;
+	private Date birth;
+	private Integer dead;
+	private String birthplace;
+	private Double height;
+	private Double weight;
+	private String name;
+
 	public Integer getPatientId() {
 		return patientId;
 	}
@@ -26,7 +46,7 @@ public class Patient implements Persistent {
 	public void setPatientId(Integer patientId) {
 		this.patientId = patientId;
 	}
-	
+
 	public String getRace() {
 		return race;
 	}
@@ -76,7 +96,7 @@ public class Patient implements Persistent {
 	}
 
 	public String getName() {
-		return name; 
+		return name;
 	}
 
 	public void setName(String name) {
@@ -90,7 +110,7 @@ public class Patient implements Persistent {
 	public void setGender(String gender) {
 		this.gender = gender;
 	}
-	
+
 	@Override
 	public void read(DataInputStream dis) throws IOException,
 			InstantiationException, IllegalAccessException {
@@ -100,8 +120,8 @@ public class Patient implements Persistent {
 		setBirth(SerializationUtils.readDate(dis));
 		setDead(SerializationUtils.readInteger(dis));
 		setBirthplace(SerializationUtils.readUTF(dis));
-		//setHeight(SerializationUtils.readDouble(dis));
-		//setWeight(SerializationUtils.readDouble(dis));
+		// setHeight(SerializationUtils.readDouble(dis));
+		// setWeight(SerializationUtils.readDouble(dis));
 		setName(SerializationUtils.readUTF(dis));
 	}
 
@@ -113,8 +133,8 @@ public class Patient implements Persistent {
 		SerializationUtils.writeDate(dos, getBirth());
 		SerializationUtils.writeInteger(dos, getDead());
 		SerializationUtils.writeUTF(dos, getBirthplace());
-		//SerializationUtils.writeDouble(dos, getHeight());
-		//SerializationUtils.writeDouble(dos, getWeight());
+		// SerializationUtils.writeDouble(dos, getHeight());
+		// SerializationUtils.writeDouble(dos, getWeight());
 		SerializationUtils.writeUTF(dos, getName());
 	}
 

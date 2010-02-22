@@ -24,169 +24,149 @@ import java.util.Date;
 import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-public class Observation implements Persistent
-{
+/**
+ * 
+ * @author Euzel Villanueva
+ *
+ */
+public class Observation implements Persistent {
 
-    Integer obsId;
-    Integer patientId;
-    Integer conceptId;
-    Integer encounterId;
-    String text;
-    Date date;
-    Double value;
-    Boolean valueBoolean;
-    Integer creator;
-    Date dateCreated;
+	private Integer obsId;
+	private Integer patientId;
+	private Integer conceptId;
+	private Integer encounterId;
+	private String text;
+	private Date date;
+	private Double value;
+	private Boolean valueBoolean;
+	private Integer creator;
+	private Date dateCreated;
 
-    public Observation()
-    {
-        super();
+	public Observation() {
+		super();
 
-    }
+	}
 
-    public Observation(Integer obsId, Integer patientId, Integer encounterId,
-            Integer conceptId, String text, Date date, Double value,
-            Integer creator, Date dateCreated, Boolean valueBoolean)
-    {
-        this();
-        setObsId(obsId);
-        setPatientId(patientId);
-        setEncounterId(encounterId);
-        setConceptId(conceptId);
-        setText(text);
-        setDate(date);
-        setValue(value);
-        setCreator(creator);
-        setDateCreated(dateCreated);
-    }
+	public Observation(Integer obsId, Integer patientId, Integer encounterId,
+			Integer conceptId, String text, Date date, Double value,
+			Integer creator, Date dateCreated, Boolean valueBoolean) {
+		this();
+		setObsId(obsId);
+		setPatientId(patientId);
+		setEncounterId(encounterId);
+		setConceptId(conceptId);
+		setText(text);
+		setDate(date);
+		setValue(value);
+		setCreator(creator);
+		setDateCreated(dateCreated);
+	}
 
-    public void setConceptId(Integer conceptId)
-    {
-        this.conceptId = conceptId;
-    }
+	public void setConceptId(Integer conceptId) {
+		this.conceptId = conceptId;
+	}
 
-    public Integer getConceptId()
-    {
-        return conceptId;
-    }
+	public Integer getConceptId() {
+		return conceptId;
+	}
 
-    public void setObsId(Integer obsId)
-    {
-        this.obsId = obsId;
-    }
+	public void setObsId(Integer obsId) {
+		this.obsId = obsId;
+	}
 
-    public Integer getObsId()
-    {
-        return obsId;
-    }
+	public Integer getObsId() {
+		return obsId;
+	}
 
-    public void setDateCreated(Date date)
-    {
-        this.dateCreated = date;
-    }
+	public void setDateCreated(Date date) {
+		this.dateCreated = date;
+	}
 
-    public Date getDateCreated()
-    {
-        return dateCreated;
-    }
+	public Date getDateCreated() {
+		return dateCreated;
+	}
 
-    public void setValue(Double value)
-    {
-        this.value = value;
-    }
+	public void setValue(Double value) {
+		this.value = value;
+	}
 
-    public Double getValue()
-    {
-        return value;
-    }
+	public Double getValue() {
+		return value;
+	}
 
-    public void setText(String text)
-    {
-        this.text = text;
-    }
+	public void setText(String text) {
+		this.text = text;
+	}
 
-    public String getText()
-    {
-        return text;
-    }
+	public String getText() {
+		return text;
+	}
 
-    public void setValueBoolean(Boolean valueBoolean)
-    {
-        this.valueBoolean = valueBoolean;
-    }
+	public void setValueBoolean(Boolean valueBoolean) {
+		this.valueBoolean = valueBoolean;
+	}
 
-    public Boolean getValueBoolean()
-    {
-        return valueBoolean;
-    }
+	public Boolean getValueBoolean() {
+		return valueBoolean;
+	}
 
-    public Integer getEncounterId()
-    {
-        return encounterId;
-    }
+	public Integer getEncounterId() {
+		return encounterId;
+	}
 
-    public void setEncounterId(Integer encounterId)
-    {
-        this.encounterId = encounterId;
-    }
+	public void setEncounterId(Integer encounterId) {
+		this.encounterId = encounterId;
+	}
 
-    public Integer getPatientId()
-    {
-        return patientId;
-    }
+	public Integer getPatientId() {
+		return patientId;
+	}
 
-    public void setPatientId(Integer patientId)
-    {
-        this.patientId = patientId;
-    }
+	public void setPatientId(Integer patientId) {
+		this.patientId = patientId;
+	}
 
-    public Integer getCreator()
-    {
-        return creator;
-    }
+	public Integer getCreator() {
+		return creator;
+	}
 
-    public void setCreator(Integer creator)
-    {
-        this.creator = creator;
-    }
+	public void setCreator(Integer creator) {
+		this.creator = creator;
+	}
 
-    public void setDate(Date date)
-    {
-        this.date = date;
-    }
+	public void setDate(Date date) {
+		this.date = date;
+	}
 
-    public Date getDate()
-    {
-        return date;
-    }
+	public Date getDate() {
+		return date;
+	}
 
-    public void read(DataInputStream dis) throws IOException,
-            InstantiationException, IllegalAccessException
-    {
-        setObsId(SerializationUtils.readInteger(dis));
-        setPatientId(SerializationUtils.readInteger(dis));
-        setEncounterId(SerializationUtils.readInteger(dis));
-        setConceptId(SerializationUtils.readInteger(dis));
-        setText(SerializationUtils.readUTF(dis));
-        setDate(SerializationUtils.readDate(dis));
-        setValue(SerializationUtils.readDouble(dis));
-        setCreator(SerializationUtils.readInteger(dis));
-        setDateCreated(SerializationUtils.readDate(dis));
-        setValueBoolean(SerializationUtils.readBoolean(dis));
-    }
+	public void read(DataInputStream dis) throws IOException,
+			InstantiationException, IllegalAccessException {
+		setObsId(SerializationUtils.readInteger(dis));
+		setPatientId(SerializationUtils.readInteger(dis));
+		setEncounterId(SerializationUtils.readInteger(dis));
+		setConceptId(SerializationUtils.readInteger(dis));
+		setText(SerializationUtils.readUTF(dis));
+		setDate(SerializationUtils.readDate(dis));
+		setValue(SerializationUtils.readDouble(dis));
+		setCreator(SerializationUtils.readInteger(dis));
+		setDateCreated(SerializationUtils.readDate(dis));
+		setValueBoolean(SerializationUtils.readBoolean(dis));
+	}
 
-    public void write(DataOutputStream dos) throws IOException
-    {
-        SerializationUtils.writeInteger(dos, getObsId());
-        SerializationUtils.writeInteger(dos, getPatientId());
-        SerializationUtils.writeInteger(dos, getEncounterId());
-        SerializationUtils.writeInteger(dos, getConceptId());
-        SerializationUtils.writeUTF(dos, getText());
-        SerializationUtils.writeDate(dos, getDate());
-        SerializationUtils.writeDouble(dos, getValue());
-        SerializationUtils.writeInteger(dos, getCreator());
-        SerializationUtils.writeDate(dos, getDateCreated());
-        SerializationUtils.writeBoolean(dos, getValueBoolean());
-    }
+	public void write(DataOutputStream dos) throws IOException {
+		SerializationUtils.writeInteger(dos, getObsId());
+		SerializationUtils.writeInteger(dos, getPatientId());
+		SerializationUtils.writeInteger(dos, getEncounterId());
+		SerializationUtils.writeInteger(dos, getConceptId());
+		SerializationUtils.writeUTF(dos, getText());
+		SerializationUtils.writeDate(dos, getDate());
+		SerializationUtils.writeDouble(dos, getValue());
+		SerializationUtils.writeInteger(dos, getCreator());
+		SerializationUtils.writeDate(dos, getDateCreated());
+		SerializationUtils.writeBoolean(dos, getValueBoolean());
+	}
 
 }
