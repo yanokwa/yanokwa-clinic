@@ -25,17 +25,15 @@ import java.util.List;
 import org.openmrs.module.xforms.serialization.Persistent;
 import org.openmrs.module.xforms.serialization.SerializationUtils;
 
-import com.sun.xml.internal.ws.message.ByteArrayAttachment;
-
 /**
  * @author Euzel Villanueva
  * 
  */
-abstract class AbstractBundle<E> implements Bundle<E> {
+abstract class AbstractBundle<E extends Persistent> implements Bundle<E> {
 	private List<E> bundle;
-	private final Class<?> cls;
+	private final Class<E> cls;
 
-	public AbstractBundle(Class<?> cls) {
+	public AbstractBundle(Class<E> cls) {
 		bundle = new ArrayList<E>();
 		this.cls = cls;
 	}
