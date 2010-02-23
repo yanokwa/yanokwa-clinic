@@ -17,7 +17,7 @@
 			  PRIMARY KEY  (id)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 		
-		DROP TABLE  IF EXISTS odkclinic_encounter;
+		DROP TABLE IF EXISTS odkclinic_encounter;
 		CREATE TABLE odkclinic_encounter (
 			id int NOT NULL,
 			revision_token datetime NOT NULL default '0000-00-00 00:00:00',
@@ -30,9 +30,21 @@
 			INSERT INTO odkclinic_obs(id,revision_token) VALUES (NEW.obs_id, NOW());
 		
 		DROP TRIGGER IF EXISTS encounter_trigger;
-		CREATE TRIGGER encounter_trigger BEFORE INSERT ON encounter
+		DROP TRIGGER IF EXISTS encounter_insert
+		CREATE TRIGGER encounter_insert BEFORE INSERT ON encounter
 			FOR EACH ROW
 			INSERT INTO odkclinic_encounter(id, revision_token) VALUES (NEW.encounter_id, NOW());
+		
+		DROP TRIGGER IF EXISTS encounter_delete;
+		CREATE TRIGGER encounter_delete BEFORE DELETE ON encounter
+		    FOR EACH ROW
+		    DELETE FROM odkclinic_encounter WHERE id = OLD.encounter_id;
+		
+		DROP TRIGGER IF EXISTS obs_delete;
+		CREATE TRIGGER obs_delete BEFORE DELETE ON obs
+		    FOR EACH ROW
+		    DELETE FROM odkclinic_obs WHERE id = OLD.obs_id;
+		
 		
 		DROP TRIGGER IF EXISTS obs_update;
 		CREATE TRIGGER obs_update AFTER UPDATE ON obs 
@@ -71,7 +83,6 @@
 		INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(11,3,4,1,'yes sir');
 		INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(12,3,5,1,'no sir');  
 		
-		IN
         
         <!-- 
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_numeric,creator,voided,observation_date_created,isUpdate) VALUES(2,1,4,1,110,1,0,'2009-04-23 00:00:00', 1); 
