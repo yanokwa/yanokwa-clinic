@@ -68,6 +68,7 @@ import com.odkclinic.model.bundle.ObservationBundle;
 import com.odkclinic.model.bundle.PatientBundle;
 import com.odkclinic.model.bundle.PatientProgramBundle;
 import com.odkclinic.model.bundle.ProgramBundle;
+import com.odkclinic.model.bundle.ProgramWorkflowBundle;
 
 /**
  * 
@@ -187,7 +188,7 @@ public class PatientList extends ExpandableListActivity {
 	private void updatesIntent() {
 		Intent i = new Intent(this, UpdateList.class);
 		startActivityForResult(i, R.id.patientlist_sync);
-	}
+	} 
 	
 	/**
 	 * Starts intent for viewing patientdata
@@ -300,6 +301,7 @@ public class PatientList extends ExpandableListActivity {
     public static final byte ACTION_ANDROID_DOWNLOAD_COHORTS = 127;
     public static final byte ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS = 126;
     public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS = 125;
+    public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS = 124;
     //public static final byte ACTION_ANDROID_DOWNLOADS = 15;
     public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 16;
     public static final byte ACTION_ANDROID_UPLOAD_OBS = 32;
@@ -363,7 +365,17 @@ public class PatientList extends ExpandableListActivity {
                 reqEntity.addPart("UPLOAD_ENCOUNTER", new InputStreamKnownSizeBody(new ByteArrayInputStream(ebBytes), ebBytes.length, "img/jpeg", "ff"));
                 byte[] obBytes = ob.getBytes();
                 reqEntity.addPart("UPLOAD_OBSERVATION", new InputStreamKnownSizeBody(new ByteArrayInputStream(obBytes), obBytes.length, "img/jpeg", "ff"));
-                reqEntity.addPart("DOWNLOAD_ACTIONS", new StringBody("DOWNLOAD_PROGRAM;DOWNLOAD_PATIENT;DOWNLOAD_ENCOUNTER;DOWNLOAD_OBSERVATION;DOWNLOAD_LOCATION;DOWNLOAD_PATIENTPROGRAM;DOWNLOAD_COHORT;DOWNLOAD_COHORTMEMBER;DOWNLOAD_CONCEPT;DOWNLOAD_CONCEPTNAME"));
+                reqEntity.addPart("DOWNLOAD_ACTIONS", new StringBody("DOWNLOAD_PROGRAM;" +
+                		                                             "DOWNLOAD_PATIENT;" +
+                		                                             "DOWNLOAD_ENCOUNTER;" +
+                		                                             "DOWNLOAD_OBSERVATION;" +
+                		                                             "DOWNLOAD_LOCATION;" +
+                		                                             "DOWNLOAD_PATIENTPROGRAM;" +
+                		                                             "DOWNLOAD_COHORT;" +
+                		                                             "DOWNLOAD_COHORTMEMBER;" +
+                		                                             "DOWNLOAD_CONCEPT;" +
+                		                                             "DOWNLOAD_CONCEPTNAME;" +
+                		                                             "DOWNLOAD_PROGRAMWORKFLOW"));
                 
                 httpost.setEntity(reqEntity);
                 
@@ -386,7 +398,7 @@ public class PatientList extends ExpandableListActivity {
                     CohortMemberBundle cmb = new CohortMemberBundle();
                     ConceptBundle cnb = new ConceptBundle();
                     ConceptNameBundle cnnb = new ConceptNameBundle();
-                    
+                    ProgramWorkflowBundle pwb = new ProgramWorkflowBundle();
                     boolean success = false;
                     
                     try {
@@ -424,9 +436,13 @@ public class PatientList extends ExpandableListActivity {
                                 case ACTION_ANDROID_DOWNLOAD_PATIENTS:
                                     pb.read(dis);
                                     break;
+                                case ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS:
+                                    pwb.read(dis);
+                                    break;
                             }
                             x = dis.read();
-                        } while (x != -1);
+                        } while (x != ACTION_ANDROID_END && x != -1);
+                        db.setRevToken(dis.readLong()); 
                         success = true;
                     } catch(EOFException e) {
                         Log.d(LOG_TAG + "/SendDataTask", "Error in Stream");
@@ -536,7 +552,15 @@ public class PatientList extends ExpandableListActivity {
                     {
                         Log.d(LOG_TAG, "GOT EMPTY OB");
                     }
-
+                    
+                    if (pwb.getBundle().size() > 0)
+                    {
+                        db.insertProgramWorkflowBundle(pwb);
+                        Log.d(LOG_TAG, "GOT NONEMPTY PWB");
+                    } else
+                    {
+                        Log.d(LOG_TAG, "GOT EMPTY PWB");
+                    }
                     
                     
                     // update rev token to new value

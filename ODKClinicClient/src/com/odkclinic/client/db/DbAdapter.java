@@ -40,6 +40,7 @@ import com.odkclinic.client.db.tables.ObservationTable;
 import com.odkclinic.client.db.tables.PatientProgramTable;
 import com.odkclinic.client.db.tables.PatientTable;
 import com.odkclinic.client.db.tables.ProgramTable;
+import com.odkclinic.client.db.tables.ProgramWorkflowTable;
 import com.odkclinic.client.db.tables.SettingsTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
@@ -53,6 +54,7 @@ import com.odkclinic.model.Observation;
 import com.odkclinic.model.Patient;
 import com.odkclinic.model.PatientProgram;
 import com.odkclinic.model.Program;
+import com.odkclinic.model.ProgramWorkflow;
 import com.odkclinic.model.bundle.CohortBundle;
 import com.odkclinic.model.bundle.CohortMemberBundle;
 import com.odkclinic.model.bundle.ConceptBundle;
@@ -63,6 +65,7 @@ import com.odkclinic.model.bundle.ObservationBundle;
 import com.odkclinic.model.bundle.PatientBundle;
 import com.odkclinic.model.bundle.PatientProgramBundle;
 import com.odkclinic.model.bundle.ProgramBundle;
+import com.odkclinic.model.bundle.ProgramWorkflowBundle;
 
 /**
  * Main interface for subset OpenMrs database.
@@ -400,7 +403,7 @@ public class DbAdapter {
 			insertOrUpdate(table, where, values);
 		}
 	}
-
+	
 	public ContentValues getValues(Encounter e) {
 		ContentValues values = new ContentValues();
 		values.put(EncounterTable.ID.getName(), e.getEncounterId());
@@ -486,6 +489,24 @@ public class DbAdapter {
 						.getProgramId());
 		return values;
 	}
+	
+	public void insertProgramWorkflowBundle(ProgramWorkflowBundle prb) {
+        for (ProgramWorkflow pr : prb.getBundle()) {
+            String table = ProgramWorkflowTable.TABLE_NAME;
+            String where = ProgramWorkflowTable.ID.getName() + "="
+                    + pr.getProgramWorkflowId();
+            ContentValues values = getValues(pr);
+            insertOrUpdate(table, where, values);
+        }
+    }
+
+    public ContentValues getValues(ProgramWorkflow pw) {
+        ContentValues values = new ContentValues();
+        values.put(ProgramWorkflowTable.ID.getName(), pw.getProgramWorkflowId());
+        values.put(ProgramWorkflowTable.CONCEPT_ID.getName(), pw.getConceptId());
+        values.put(ProgramWorkflowTable.PROGRAM_ID.getName(), pw.getProgramId());
+        return values;
+    }
 
 	public void insertPatientBundle(PatientBundle pb) {
 		for (Patient p : pb.getBundle()) {
