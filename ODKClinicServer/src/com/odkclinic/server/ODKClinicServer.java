@@ -217,7 +217,7 @@ public class ODKClinicServer
                                     case DOWNLOAD_CONCEPT:
                                         success = downloadConcepts(dos, skey);
                                         break;
-                                    case DOWNLOAD_PROGRAMWORKFLOWS:
+                                    case DOWNLOAD_PROGRAMWORKFLOW:
                                         success = downloadProgramWorkflows(dos, skey);
                                         break;
                                 }

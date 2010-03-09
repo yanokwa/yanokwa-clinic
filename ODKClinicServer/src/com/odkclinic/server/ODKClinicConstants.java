@@ -52,7 +52,7 @@ public class ODKClinicConstants {
         DOWNLOAD_CONCEPTNAME,
         DOWNLOAD_PATIENTPROGRAM,
         DOWNLOAD_ACTIONS,
-        DOWNLOAD_PROGRAMWORKFLOWS;
+        DOWNLOAD_PROGRAMWORKFLOW;
         
     }
 }
