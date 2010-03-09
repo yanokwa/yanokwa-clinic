@@ -1,66 +1,81 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE sqldiff PUBLIC "-//OpenMRS//DTD OpenMRS SQL Diff Config 1.0//EN" "http://resources.openmrs.org/doctype/sqldiff-1.0.dtd">
 <sqldiff version="1.0">
-	
-	<diff>
-		<version>1.0</version>
-		<author>UW ICTD</author>
-		<date>February 5 2010</date>
-		<description>
-			Creating the revision token tables and triggers
-		</description>
-		<sql>
-		DROP TABLE IF EXISTS odkclinic_obs;
-		CREATE TABLE odkclinic_obs (
-			  id int(11) NOT NULL,
-			  revision_token datetime NOT NULL default '0000-00-00 00:00:00',
-			  PRIMARY KEY  (id)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-		
-		DROP TABLE IF EXISTS odkclinic_encounter;
-		CREATE TABLE odkclinic_encounter (
-			id int NOT NULL,
-			revision_token datetime NOT NULL default '0000-00-00 00:00:00',
-			PRIMARY KEY (id)
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-			
-		DROP TRIGGER IF EXISTS obs_insert;	
-		CREATE TRIGGER obs_insert BEFORE INSERT ON obs
-			FOR EACH ROW
-			INSERT INTO odkclinic_obs(id,revision_token) VALUES (NEW.obs_id, NOW());
-		
-		DROP TRIGGER IF EXISTS encounter_trigger;
-		DROP TRIGGER IF EXISTS encounter_insert
-		CREATE TRIGGER encounter_insert BEFORE INSERT ON encounter
-			FOR EACH ROW
-			INSERT INTO odkclinic_encounter(id, revision_token) VALUES (NEW.encounter_id, NOW());
-		
-		DROP TRIGGER IF EXISTS encounter_delete;
-		CREATE TRIGGER encounter_delete BEFORE DELETE ON encounter
-		    FOR EACH ROW
-		    DELETE FROM odkclinic_encounter WHERE id = OLD.encounter_id;
-		
-		DROP TRIGGER IF EXISTS obs_delete;
-		CREATE TRIGGER obs_delete BEFORE DELETE ON obs
-		    FOR EACH ROW
-		    DELETE FROM odkclinic_obs WHERE id = OLD.obs_id;
-		
-		
-		DROP TRIGGER IF EXISTS obs_update;
-		CREATE TRIGGER obs_update AFTER UPDATE ON obs 
-			FOR EACH ROW
-			UPDATE odkclinic_obs SET odkclinic_obs.revision_token = NOW() 
-			WHERE NEW.obs_id = odkclinic_obs.id;
-		
-		DROP TRIGGER IF EXISTS enc_update;
-		CREATE TRIGGER enc_update AFTER UPDATE ON encounter
-		    FOR EACH ROW
-			UPDATE odkclinic_encounter SET odkclinic_encounter.revision_token = NOW() 
-			WHERE NEW.encounter_id = odkclinic_encounter.id;
-		
-		<!-- unretire NOTES -->
-		UPDATE concept SET retired = 0 WHERE concept_id = 5097;
-		 
+    
+    <diff>
+        <version>1.0</version>
+        <author>UW ICTD</author>
+        <date>February 5 2010</date>
+        <description>
+            Creating the revision token tables and triggers
+        </description>
+        <sql>
+        DROP TABLE IF EXISTS odkclinic_obs;
+        CREATE TABLE odkclinic_obs (
+              id int(11) NOT NULL,
+              revision_token datetime NOT NULL default '0000-00-00 00:00:00',
+              PRIMARY KEY  (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+        
+        DROP TABLE IF EXISTS odkclinic_encounter;
+        CREATE TABLE odkclinic_encounter (
+            id int NOT NULL,
+            revision_token datetime NOT NULL default '0000-00-00 00:00:00',
+            PRIMARY KEY (id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+            
+        DROP TRIGGER IF EXISTS obs_insert;  
+        CREATE TRIGGER obs_insert AFTER INSERT ON obs
+            FOR EACH ROW
+            INSERT INTO odkclinic_obs(id,revision_token) VALUES (NEW.obs_id, NOW());
+        
+        DROP TRIGGER IF EXISTS encounter_trigger;
+        DROP TRIGGER IF EXISTS encounter_insert;
+        CREATE TRIGGER encounter_insert AFTER INSERT ON encounter
+            FOR EACH ROW
+            INSERT INTO odkclinic_encounter(id, revision_token) VALUES (NEW.encounter_id, NOW());
+        
+        DROP TRIGGER IF EXISTS encounter_delete;
+        CREATE TRIGGER encounter_delete AFTER DELETE ON encounter
+            FOR EACH ROW
+            DELETE FROM odkclinic_encounter WHERE id = OLD.encounter_id;
+        
+        DROP TRIGGER IF EXISTS obs_delete;
+        CREATE TRIGGER obs_delete AFTER DELETE ON obs
+            FOR EACH ROW
+            DELETE FROM odkclinic_obs WHERE id = OLD.obs_id;
+        DROP TRIGGER IF EXISTS obs_update;
+        CREATE TRIGGER obs_update BEFORE UPDATE ON obs 
+            FOR EACH ROW
+            BEGIN
+                IF  OLD.voided = 0 AND NEW.voided = 1 THEN
+                   DELETE FROM odkclinic_obs WHERE id = OLD.obs_id;
+                ELSE 
+                   UPDATE odkclinic_obs SET odkclinic_obs.revision_token = NOW() 
+                   WHERE NEW.obs_id = odkclinic_obs.id;    
+                END IF;
+            END
+                
+        DROP TRIGGER IF EXISTS enc_update;
+        CREATE TRIGGER enc_update BEFORE UPDATE ON encounter
+            FOR EACH ROW
+            BEGIN
+                IF OLD.voided = 0 AND NEW.voided = 1 THEN
+                    DELETE FROM odkclinic_encounter WHERE id = OLD.encounter_id;
+                ELSE 
+                    UPDATE odkclinic_encounter SET odkclinic_encounter.revision_token = NOW() 
+                    WHERE NEW.encounter_id = odkclinic_encounter.id;
+                END IF;
+            END
+        
+        <!-- Create New Concept for Notes -- Will Override any concept with id of 0XBADF00D -->
+        DELETE FROM concept WHERE concept_id = 0xBADF00D;
+        INSERT INTO concept(concept_id, class_id, datatype_id, is_set, retired, creator, date_created, uuid) VALUES(0xBADF00D, 11, 3, 0, 0, 1, NOW(), UUID());
+        DELETE FROM concept_name WHERE concept_name_id = 0xBADF00D;
+        INSERT INTO concept_name(concept_id, name, locale, creator, date_created, concept_name_id, voided, uuid) VALUES(0xBADF00D, 'NOTES', 'en', 1, NOW(), 0xBADF00D, 0, UUID());
+        <!-- unretire NOTES -->
+        <!--UPDATE concept SET retired = 0 WHERE concept_id = 5097;-->
+         <!-- 
         INSERT INTO cohort(cohort_id,name,creator,voided,date_created,uuid) VALUES(1,'PRIME',1,0,'2009-06-02 00:00:00','wakka-wakka-wakka'); 
         INSERT INTO cohort_member(cohort_id,patient_id) VALUES(1,2); 
         INSERT INTO cohort_member(cohort_id,patient_id) VALUES(1,3); 
@@ -80,9 +95,9 @@
         INSERT INTO program(program_id,concept_id,name,creator,uuid) VALUES(5,5097,'Note thing',1,'think'); 
         INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(9,2,4,1,'yup yup'); 
         INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(10,2,5,1,'nope nope'); 
-		INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(11,3,4,1,'yes sir');
-		INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(12,3,5,1,'no sir');  
-		
+        INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(11,3,4,1,'yes sir');
+        INSERT INTO patient_program(patient_program_id,patient_id,program_id,creator,uuid) VALUES(12,3,5,1,'no sir');  
+        -->
         
         <!-- 
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_numeric,creator,voided,observation_date_created,isUpdate) VALUES(2,1,4,1,110,1,0,'2009-04-23 00:00:00', 1); 
@@ -92,8 +107,8 @@
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_numeric,creator,voided,observation_date_created,isUpdate) VALUES(6,2,4,2,125,1,0,'2009-03-03 00:00:00', 1); 
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_numeric,creator,voided,observation_date_created,isUpdate) VALUES(7,2,4,2,130,1,0,'2009-05-23 00:00:00', 1); 
         -->
-		
-		<!--
+        
+        <!--
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_boolean,creator,voided,observation_date_created,isUpdate) VALUES(22,1,1,2,0,1,0,'2009-04-32 00:00:00', 1); 
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_boolean,creator,voided,observation_date_created,isUpdate) VALUES(23,1,1,2,1,1,0,'2009-06-32 00:00:00', 1); 
         INSERT INTO client_observation(obs_id,observation_patient_id,observation_concept_id,observation_encounter_id,value_boolean,creator,voided,observation_date_created,isUpdate) VALUES(24,1,1,2,0,1,0,'2009-07-32 00:00:00', 1); 
@@ -103,6 +118,6 @@
         --> 
         
         
-		</sql>
-	</diff>
+        </sql>
+    </diff>
 </sqldiff>
