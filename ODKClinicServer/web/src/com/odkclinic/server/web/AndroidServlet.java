@@ -26,7 +26,16 @@ public class AndroidServlet extends HttpServlet {
 	
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try{
-			new ODKClinicServer().handleStreams(request, response);
+			ODKClinicServer server = new ODKClinicServer();
+			boolean fail = server.start();
+            if (!fail)
+            {
+                server.handleStreams(request, response);
+                server.shutdown();
+            } else {
+                response.setStatus(HttpServletResponse.SC_NOT_ACCEPTABLE);
+                response.flushBuffer();
+            }
 		}
 		catch(Exception e){
 			log.error("Error during synchronization with client.",e);

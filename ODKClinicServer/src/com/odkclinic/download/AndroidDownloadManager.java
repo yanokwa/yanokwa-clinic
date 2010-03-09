@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -64,10 +65,27 @@ import com.odkclinic.server.ODKClinicService;
  */
 @SuppressWarnings("unused")
 public class AndroidDownloadManager {
-
-	private static Log log = LogFactory.getLog(AndroidDownloadManager.class);
+	private Log log = LogFactory.getLog(AndroidDownloadManager.class);
+	private static List<AndroidDownloadManager> list = new LinkedList<AndroidDownloadManager>();;
+	private static  boolean initialized = false;
+	private AndroidDownloadManager() {
+	}
 	
-	public static boolean downloadBundle(DataOutputStream dos, int action, long revToken) {
+	public static AndroidDownloadManager getInstance() {
+	    if (!initialized) {
+	        for (int i = 0; i < ODKClinicConstants.NUM_INSTANCES; i++) {
+	            list.add(new AndroidDownloadManager());
+	        }
+	        initialized = true;
+	    }
+	    return list.size() > 0 ? list.remove(0) : null;
+	}
+	
+	public static void returnInstance(AndroidDownloadManager a) {
+	    list.add(a);
+	}
+	
+	public boolean downloadBundle(DataOutputStream dos, int action, long revToken) {
         Bundle<?> bundle = null;
         switch (action) {
             case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS:
@@ -123,7 +141,7 @@ public class AndroidDownloadManager {
 	 * @param action
 	 * @return true if successful, false otherwise
 	 */
-	public static Bundle<?> uploadBundle(InputStream is, int action) {
+	public Bundle<?> uploadBundle(InputStream is, int action) {
 		Bundle<?> bundle = null;
 	    switch (action) {
 		    case ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER:
@@ -164,7 +182,7 @@ public class AndroidDownloadManager {
 	 * @param revToken
 	 * @return true if successful, false otherwise
 	 */
-	public static boolean commitEncounters(EncounterBundle eb, long revToken) {
+	public boolean commitEncounters(EncounterBundle eb, long revToken) {
 	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
 	    EncounterService encounterService = Context.getEncounterService();
         UserService userService = Context.getUserService();
@@ -201,7 +219,7 @@ public class AndroidDownloadManager {
 	 * @return EncounterBundle with all encounters related to patient
 	 */
 	@SuppressWarnings("deprecation")
-    public static EncounterBundle getEncounters(long revToken) {
+    public EncounterBundle getEncounters(long revToken) {
 		EncounterBundle bundle = new EncounterBundle();
 		CohortService cService = Context.getCohortService();
 		Cohort cohort = cService.getCohort(1);
@@ -244,7 +262,7 @@ public class AndroidDownloadManager {
 	 * @return true if successful, false otherwise
 	 */
 	@SuppressWarnings("deprecation")
-    public static boolean commitObservations(ObservationBundle ob, long revToken) {
+    public boolean commitObservations(ObservationBundle ob, long revToken) {
 	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
         ObsService obsService = Context.getObsService();
         EncounterService encounterService = Context.getEncounterService();
@@ -288,7 +306,7 @@ public class AndroidDownloadManager {
 	 * @return ObservationBundle with all observations related to patient
 	 */
     @SuppressWarnings("deprecation")
-    public static ObservationBundle getObservations(long revToken)
+    public ObservationBundle getObservations(long revToken)
     {
         ObservationBundle bundle = new ObservationBundle();
         ObsService obsService = Context.getObsService();
@@ -339,7 +357,7 @@ public class AndroidDownloadManager {
 	 * @return PatientBundle with all patients in hard-coded bundle
 	 */
 	@SuppressWarnings("deprecation")
-    public static PatientBundle getPatients() {
+    public PatientBundle getPatients() {
 		PatientBundle bundle = new PatientBundle();
 		PatientService pService = Context.getPatientService();
 		CohortService cService = Context.getCohortService();
@@ -374,7 +392,7 @@ public class AndroidDownloadManager {
 	 * @return ProgramBundle with all programs
 	 */
 	//TODO add programs in programworkflows
-	private static ProgramBundle getPrograms() {
+	private ProgramBundle getPrograms() {
 		ProgramBundle bundle = new ProgramBundle();
 		ProgramWorkflowService pService = Context.getProgramWorkflowService();
 		List<org.openmrs.Program> progs = pService.getAllPrograms(false);
@@ -390,8 +408,8 @@ public class AndroidDownloadManager {
 		
 		return bundle;		
 	}
-	private static Set<org.openmrs.ConceptDatatype> mConceptDTs;
-	private static Set<org.openmrs.ConceptDatatype> getConceptDTs() {
+	private Set<org.openmrs.ConceptDatatype> mConceptDTs;
+	private Set<org.openmrs.ConceptDatatype> getConceptDTs() {
 	    if (mConceptDTs == null) {
     	    ConceptService cService = Context.getConceptService();
     	    mConceptDTs = new HashSet<org.openmrs.ConceptDatatype>();
@@ -403,7 +421,7 @@ public class AndroidDownloadManager {
 	    return mConceptDTs;
 	}
 	
-	private static ConceptBundle getConcepts() {
+	private ConceptBundle getConcepts() {
 	    ConceptBundle bundle = new ConceptBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
         Cohort cohort = Context.getCohortService().getCohort(1);
@@ -429,7 +447,7 @@ public class AndroidDownloadManager {
 	}
 	
 	
-    private static ProgramWorkflowBundle getProgramWorkFlows() {
+    private ProgramWorkflowBundle getProgramWorkFlows() {
 	    ProgramWorkflowBundle bundle = new ProgramWorkflowBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
 	    List<org.openmrs.Program> progs = pService.getAllPrograms(false);
@@ -447,7 +465,7 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
-	private static ConceptNameBundle getConceptNames() {
+	private ConceptNameBundle getConceptNames() {
 	    ConceptNameBundle bundle = new ConceptNameBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
         Cohort cohort = Context.getCohortService().getCohort(1);
@@ -469,7 +487,7 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
-	private static CohortBundle getCohorts() {
+	private CohortBundle getCohorts() {
 	    //for now just return bundle of size 1 containing cohort 1
 	    CohortBundle cohortBundle = new CohortBundle();
 	    
@@ -487,7 +505,7 @@ public class AndroidDownloadManager {
 	    return cohortBundle;
 	}
 	
-	private static CohortMemberBundle getCohortMembers() {
+	private CohortMemberBundle getCohortMembers() {
 	    CohortMemberBundle bundle = new CohortMemberBundle();
 	    org.openmrs.Cohort cohort = Context.getCohortService().getCohort(1);
 	    for (Integer id: cohort.getMemberIds()) {
@@ -499,7 +517,7 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
-	private static LocationBundle getLocations() {
+	private LocationBundle getLocations() {
 	    LocationBundle bundle = new LocationBundle();
 	    LocationService lService = Context.getLocationService();
 	    for (org.openmrs.Location location: lService.getAllLocations()) {
@@ -514,7 +532,7 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
-	private static PatientProgramBundle getPatientPrograms() {
+	private PatientProgramBundle getPatientPrograms() {
 	    PatientProgramBundle bundle = new PatientProgramBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
 	    Cohort cohort = Context.getCohortService().getCohort(1);
@@ -530,7 +548,7 @@ public class AndroidDownloadManager {
 	}
 	
 	
-	public static long getLargestRevisionToken() {
+	public long getLargestRevisionToken() {
 	    ODKClinicService revService = (ODKClinicService) Context.getService(ODKClinicService.class);
 	    long encToken = revService.getLargestRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE);
 	    long obsToken = revService.getLargestRevisionToken(ODKClinicConstants.OBS_TABLE);

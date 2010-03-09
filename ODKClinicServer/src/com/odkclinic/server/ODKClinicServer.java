@@ -28,6 +28,24 @@ import com.odkclinic.server.ODKClinicConstants.Headers;
 
 public class ODKClinicServer
 {
+    public ODKClinicServer() {
+        
+    }
+    
+    private AndroidDownloadManager dl;
+    
+    public boolean start() {
+        if (dl == null) {
+            dl = AndroidDownloadManager.getInstance();
+        }
+        return dl == null;
+    }
+    
+    public void shutdown() {
+        if (dl != null) {
+            AndroidDownloadManager.returnInstance(dl);
+        }
+    }
 
     private Log log = LogFactory.getLog(this.getClass());
 
@@ -65,6 +83,8 @@ public class ODKClinicServer
     public void handleStreams(HttpServletRequest request,
             HttpServletResponse response) throws IOException, Exception
     {
+        if (dl == null)
+            throw new IllegalStateException("Server not initialized yet.");
         byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
         int boundaryIndex = request.getContentType().indexOf("boundary=") + 9;
         byte[] boundary = (request.getContentType().substring(boundaryIndex))
@@ -228,7 +248,7 @@ public class ODKClinicServer
                             }
                             if (success) {
                                 dos.write(ODKClinicConstants.ACTION_ANDROID_END);
-                                dos.writeLong(AndroidDownloadManager.getLargestRevisionToken());
+                                dos.writeLong(dl.getLargestRevisionToken());
                             }
                         } else
                         {
@@ -271,13 +291,13 @@ public class ODKClinicServer
             switch (entry.getKey())
             {
                 case Encounters:
-                    if (!AndroidDownloadManager
+                    if (!dl
                             .commitEncounters((EncounterBundle) entry
                                     .getValue(), revToken))
                         return false;
                     break;
                 case Observations:
-                    if (!AndroidDownloadManager
+                    if (!dl
                             .commitObservations((ObservationBundle) entry
                                     .getValue(), revToken))
                         return false;
@@ -298,62 +318,62 @@ public class ODKClinicServer
     private boolean downloadEncounters(DataOutputStream os, String serializerKey,
             long revToken) throws Exception
     {
-       return AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER, revToken);
+       return dl.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_ENCOUNTER, revToken);
     }
 
     private Bundle<?> uploadEncounters(DataInputStream is) throws IOException
     {
-        return AndroidDownloadManager.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER);
+        return dl.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_ENCOUNTER);
     }
 
     private boolean downloadObservations(DataOutputStream os, String serializerKey,
             long revToken) throws Exception
     {
-        return AndroidDownloadManager.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS, revToken);
+        return dl.downloadBundle(os, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_OBS, revToken);
     }
 
     private Bundle<?> uploadObservations(DataInputStream is) throws IOException
     {
-        return AndroidDownloadManager.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS);
+        return dl.uploadBundle(is, ODKClinicConstants.ACTION_ANDROID_UPLOAD_OBS);
     }
 
     private boolean downloadPatients(DataOutputStream dos, String serializerKey)
             throws Exception
     {
-       return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS, 0);
+       return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTS, 0);
     }
 
     private boolean downloadPrograms(DataOutputStream dos, String serializerKey)
             throws Exception
     {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
     }
     
     private boolean downloadConcepts(DataOutputStream dos,String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTS, 0);
     }
     
     private boolean downloadConceptNames(DataOutputStream dos,String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_CONCEPTNAMES, 0);
     }
     
     private boolean downloadCohorts(DataOutputStream dos,String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos,ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS, 0);
+        return dl.downloadBundle(dos,ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTS, 0);
     }
     
     private boolean downloadCohortMembers(DataOutputStream dos,String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS, 0);
     }
     
     private boolean downloadLocations(DataOutputStream dos,String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_LOCATIONS, 0);
     }
     
     private boolean downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
     }
     
     private boolean downloadProgramWorkflows(DataOutputStream dos, String serializerKey) {
-        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS, 0);
     }
 }

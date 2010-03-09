@@ -55,4 +55,6 @@ public class ODKClinicConstants {
         DOWNLOAD_PROGRAMWORKFLOW;
         
     }
+	
+	public static int NUM_INSTANCES = 100;
 }
