@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -20,6 +19,7 @@ import org.openmrs.Patient;
 import org.openmrs.Person;
 import org.openmrs.PersonAttribute;
 import org.openmrs.Program;
+import org.openmrs.ProgramWorkflow;
 import org.openmrs.User;
 import org.openmrs.api.CohortService;
 import org.openmrs.api.ConceptService;
@@ -30,7 +30,6 @@ import org.openmrs.api.PatientService;
 import org.openmrs.api.ProgramWorkflowService;
 import org.openmrs.api.UserService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.xforms.serialization.Persistent;
 
 import com.odkclinic.model.CohortMember;
 import com.odkclinic.model.Concept;
@@ -49,9 +48,9 @@ import com.odkclinic.model.bundle.ObservationBundle;
 import com.odkclinic.model.bundle.PatientBundle;
 import com.odkclinic.model.bundle.PatientProgramBundle;
 import com.odkclinic.model.bundle.ProgramBundle;
+import com.odkclinic.model.bundle.ProgramWorkflowBundle;
 import com.odkclinic.server.ODKClinicConstants;
 import com.odkclinic.server.ODKClinicService;
-import com.odkclinic.server.ODKClinicServiceImpl;
 
 //import org.openmrs.module.xforms.model.Observation;
 
@@ -60,9 +59,10 @@ import com.odkclinic.server.ODKClinicServiceImpl;
 /**
  * Manages downloads and uploads for Android application
  * 
- * @author Owen Kim
+ * @author UW ICTD
  *
  */
+@SuppressWarnings("unused")
 public class AndroidDownloadManager {
 
 	private static Log log = LogFactory.getLog(AndroidDownloadManager.class);
@@ -99,6 +99,9 @@ public class AndroidDownloadManager {
                 break;
             case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS:
                 bundle = getPatientPrograms();
+                break;
+            case ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS:
+                bundle = getProgramWorkFlows();
                 break;
             
         }
@@ -167,7 +170,6 @@ public class AndroidDownloadManager {
         UserService userService = Context.getUserService();
         boolean success = true;
         List<Encounter> encounters = eb.getBundle();
-        System.out.println(encounters.size());
         for (Encounter enc: encounters) {
             Date stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId());
             if (stateToken == null || revToken > stateToken.getTime()) {
@@ -205,14 +207,12 @@ public class AndroidDownloadManager {
 		Cohort cohort = cService.getCohort(1);
 		if (cohort != null) {
             Set<Integer> patients = cohort.getPatientIds();
-            System.out.println("NUMBER OF PATIENTS (ENC): " + patients.size());
     		EncounterService encounterService = Context.getEncounterService();
     		if (patients != null && patients.size() > 0) {
     		    PatientService pService = Context.getPatientService();
     			for (Integer patientId : patients) {
     				List<org.openmrs.Encounter> encounters = encounterService.getEncounters(pService.getPatient(patientId),
-    													null, /*new Date(revToken)*/null, null, null, null, false);
-    				System.out.println("NUMBER OF ENCOUNTERS: " + encounters.size());
+    													null, /*new Date(revToken)*/null, null, null, null, false);;
     				//List<org.openmrs.Encounter> encounters = encounterService.getEncountersByPatientId(patientId);
     				for (org.openmrs.Encounter inEncounter : encounters) {
     					Integer encounterId = inEncounter.getEncounterId();
@@ -298,7 +298,6 @@ public class AndroidDownloadManager {
         if (cohort != null)
         {
             Set<Integer> patients = cohort.getPatientIds();
-            System.out.println("NUMBER OF PATIENTS (OBS) " + patients.size());
             List<Person> person = new ArrayList<Person>();
             for (Integer patientId : patients)
             {
@@ -312,7 +311,6 @@ public class AndroidDownloadManager {
             }
             List<org.openmrs.Obs> obs = obsService
                     .getObservations(person, null, null, null, null, null, null, null, null, null, null, false);
-            System.out.println("NUMBER OF OBS " + obs.size());
 
             for (org.openmrs.Obs inObs : obs)
             {
@@ -430,6 +428,25 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
+	
+    private static ProgramWorkflowBundle getProgramWorkFlows() {
+	    ProgramWorkflowBundle bundle = new ProgramWorkflowBundle();
+	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
+	    List<org.openmrs.Program> progs = pService.getAllPrograms(false);
+	    Set<ProgramWorkflow> workflows = new HashSet<ProgramWorkflow>();
+	    for (Program prog: progs) {
+	        workflows.addAll(prog.getWorkflows());
+	    }
+	    for (ProgramWorkflow workflow: workflows) {
+	        com.odkclinic.model.ProgramWorkflow out = new com.odkclinic.model.ProgramWorkflow();
+	        out.setConceptId(workflow.getConcept().getConceptId());
+	        out.setProgramId(workflow.getProgram().getProgramId());
+	        out.setProgramWorkflowId(workflow.getProgramWorkflowId());
+	        bundle.add(out);
+	    }
+	    return bundle;
+	}
+	
 	private static ConceptNameBundle getConceptNames() {
 	    ConceptNameBundle bundle = new ConceptNameBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
@@ -497,7 +514,6 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
-	// TODO add patientprograms from programworkflows
 	private static PatientProgramBundle getPatientPrograms() {
 	    PatientProgramBundle bundle = new PatientProgramBundle();
 	    ProgramWorkflowService pService = Context.getProgramWorkflowService();
@@ -513,8 +529,9 @@ public class AndroidDownloadManager {
 	    return bundle;
 	}
 	
+	
 	public static long getLargestRevisionToken() {
-	    ODKClinicServiceImpl revService = (ODKClinicServiceImpl) Context.getService(ODKClinicService.class);
+	    ODKClinicService revService = (ODKClinicService) Context.getService(ODKClinicService.class);
 	    long encToken = revService.getLargestRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE);
 	    long obsToken = revService.getLargestRevisionToken(ODKClinicConstants.OBS_TABLE);
 	    return encToken >= obsToken ? encToken : obsToken;

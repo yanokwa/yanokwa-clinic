@@ -16,6 +16,7 @@ public class ODKClinicConstants {
 	public static final byte ACTION_ANDROID_DOWNLOAD_COHORTS = 127;
 	public static final byte ACTION_ANDROID_DOWNLOAD_COHORTMEMBERS = 126;
 	public static final byte ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS = 125;
+	public static final byte ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS = 124;
 	//public static final byte ACTION_ANDROID_DOWNLOADS = 15;
 	public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 16;
 	public static final byte ACTION_ANDROID_UPLOAD_OBS = 32;
@@ -50,7 +51,8 @@ public class ODKClinicConstants {
         DOWNLOAD_LOCATION,
         DOWNLOAD_CONCEPTNAME,
         DOWNLOAD_PATIENTPROGRAM,
-        DOWNLOAD_ACTIONS;
+        DOWNLOAD_ACTIONS,
+        DOWNLOAD_PROGRAMWORKFLOWS;
         
     }
 }
