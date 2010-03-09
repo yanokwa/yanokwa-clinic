@@ -67,7 +67,6 @@ public class ODKClinicServer
     {
         byte responseStatus = ODKClinicConstants.STATUS_SUCCESS;
         int boundaryIndex = request.getContentType().indexOf("boundary=") + 9;
-        System.out.println(request.getContentType());
         byte[] boundary = (request.getContentType().substring(boundaryIndex))
                 .getBytes();
         MultipartStream multipartStream = new MultipartStream(request
@@ -84,7 +83,6 @@ public class ODKClinicServer
             String headers = parseHeader(multipartStream.readHeaders());
             boolean getOut = false;
             current = Headers.valueOf(headers);
-            System.out.println(headers);
             switch (current)
             {
                 case USER:
@@ -184,10 +182,9 @@ public class ODKClinicServer
                             String[] actions = getString(multipartStream)
                                     .split(";");
                             DataOutputStream dos = new DataOutputStream(baos);
-
+                            boolean success = false;
                             for (String action : actions)
                             {
-                                boolean success = false;
                                 switch (Headers.valueOf(action))
                                 {
                                     case DOWNLOAD_ENCOUNTER:
@@ -220,11 +217,18 @@ public class ODKClinicServer
                                     case DOWNLOAD_CONCEPT:
                                         success = downloadConcepts(dos, skey);
                                         break;
+                                    case DOWNLOAD_PROGRAMWORKFLOWS:
+                                        success = downloadProgramWorkflows(dos, skey);
+                                        break;
                                 }
                                 if (!success) {
                                     responseStatus = ODKClinicConstants.STATUS_ERROR;
                                     break;
                                 }
+                            }
+                            if (success) {
+                                dos.write(ODKClinicConstants.ACTION_ANDROID_END);
+                                dos.writeLong(AndroidDownloadManager.getLargestRevisionToken());
                             }
                         } else
                         {
@@ -247,7 +251,6 @@ public class ODKClinicServer
                 response.setStatus(HttpServletResponse.SC_OK);
                 byte[] bytes = baos.toByteArray();
                 OutputStream os = response.getOutputStream();
-                System.out.println(bytes.length);
                 os.write(bytes);
                 os.flush();
                 os.close();
@@ -348,5 +351,9 @@ public class ODKClinicServer
     
     private boolean downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
         return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
+    }
+    
+    private boolean downloadProgramWorkflows(DataOutputStream dos, String serializerKey) {
+        return AndroidDownloadManager.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMWORKFLOWS, 0);
     }
 }
