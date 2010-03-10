@@ -939,6 +939,8 @@ public class DbAdapter {
 	}
 
 	public void markEncountersFailed(EncounterBundle eb) {
+	    if (eb == null || eb.getBundle().size() == 0)
+            return;
 		ContentValues values = new ContentValues();
 		values.put(ClientEncounterTable.ISUPDATE.getName(), 0);
 		StringBuilder sb = new StringBuilder();
@@ -956,6 +958,8 @@ public class DbAdapter {
 	}
 
 	public void markObservationsFailed(ObservationBundle ob) {
+	    if (ob == null || ob.getBundle().size() == 0)
+	        return;
 		ContentValues values = new ContentValues();
 		values.put(ClientObservationTable.ISUPDATE.getName(), 0);
 		StringBuilder sb = new StringBuilder();
@@ -973,6 +977,8 @@ public class DbAdapter {
 	}
 
 	public void deleteSyncedEncounters(EncounterBundle eb) {
+	    if (eb == null || eb.getBundle().size() == 0)
+            return;
 		StringBuilder sb = new StringBuilder();
 		for (Encounter e : eb.getBundle()) {
 			sb.append(" OR ");
@@ -985,6 +991,8 @@ public class DbAdapter {
 	}
 
 	public void deleteSyncedObservations(ObservationBundle ob) {
+	    if (ob == null || ob.getBundle().size() == 0)
+            return;
 		StringBuilder sb = new StringBuilder();
 		for (Observation o : ob.getBundle()) {
 			sb.append(" OR ");
