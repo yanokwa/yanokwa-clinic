@@ -26,6 +26,7 @@ import com.odkclinic.client.db.tables.ObservationTable;
 import com.odkclinic.client.db.tables.PatientProgramTable;
 import com.odkclinic.client.db.tables.PatientTable;
 import com.odkclinic.client.db.tables.ProgramTable;
+import com.odkclinic.client.db.tables.ProgramWorkflowTable;
 import com.odkclinic.client.db.tables.UpdatesTable;
 import com.odkclinic.client.db.tables.VisitedTable;
 import com.odkclinic.client.db.tables.views.EncounterView;
@@ -198,12 +199,14 @@ public class DbConstants {
     	String.format(
 				" SELECT %s, %s, %s, %s, %s, %s " +
 				" FROM %s, %s, %s, %s, %s, %s " +
+				" LEFT OUTER JOIN %s ON %s = %s AND %s = %s" +
 				" WHERE %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = ? AND %s = ? AND %s = %s " +
 				" ORDER BY %s",
 				ConceptNameTable.NAME.getName(), ObservationView.DATETIME.getName(), ObservationView.NUMERIC.getName(), ObservationView.TEXT.getName(), 
 				ObservationView.DATETIME.getName(), ObservationView.BOOLEAN.getName(),
 				
-				PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ProgramTable.TABLE_NAME, PatientProgramTable.TABLE_NAME, ObservationView.TABLE_NAME,
+				PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ProgramTable.TABLE_NAME, PatientProgramTable.TABLE_NAME, ObservationView.TABLE_NAME, 
+				ProgramWorkflowTable.TABLE_NAME, ProgramWorkflowTable.CONCEPT_ID.getName(), ConceptTable.ID.getName(), ProgramWorkflowTable.PROGRAM_ID.getName(), ProgramTable.ID.getName(),
 				
 				PatientTable.ID.getName(), PatientProgramTable.PATIENT_ID.getName(), ProgramTable.ID.getName(), PatientProgramTable.PROGRAM_ID.getName(), ProgramTable.CONCEPT_ID.getName(), 
 				ConceptTable.ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ObservationView.CONCEPT_ID.getName(), ConceptTable.ID.getName(), 
@@ -265,10 +268,12 @@ public class DbConstants {
         	String.format(
     				" SELECT DISTINCT %s, %s _id" +
     				" FROM %s, %s, %s, %s, %s " +
+    				" LEFT OUTER JOIN %s ON %s = %s AND %s = %s" +
     				" WHERE %s = %s AND %s = %s AND %s = %s AND %s = %s AND %s = ? " +
     				" ORDER BY %s ",
     				ConceptNameTable.NAME.getName(), ConceptTable.ID.getName(),
     				PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ProgramTable.TABLE_NAME, PatientProgramTable.TABLE_NAME,
+    				ProgramWorkflowTable.TABLE_NAME, ProgramWorkflowTable.CONCEPT_ID.getName(), ConceptTable.ID.getName(), ProgramWorkflowTable.PROGRAM_ID.getName(), ProgramTable.ID.getName(),
     				PatientTable.ID.getName(), PatientProgramTable.PATIENT_ID.getName(), PatientProgramTable.PROGRAM_ID.getName(), ProgramTable.ID.getName(), 
     				ProgramTable.CONCEPT_ID.getName(), ConceptTable.ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), PatientTable.ID.getName(), 
     				ConceptTable.ID.getName()); 
