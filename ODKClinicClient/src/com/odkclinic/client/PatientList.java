@@ -306,7 +306,7 @@ public class PatientList extends ExpandableListActivity {
     public static final byte ACTION_ANDROID_UPLOAD_ENCOUNTER = 16;
     public static final byte ACTION_ANDROID_UPLOAD_OBS = 32;
     public static final byte ACTION_ANDROID_UPLOADS = 48;
-    public static final byte ACTION_ANDROID_END = 64;
+    public static final byte ACTION_ANDROID_END = 123;
     
     /** Networking responses */
     /** Problems occured during connection of the request. */
@@ -441,6 +441,7 @@ public class PatientList extends ExpandableListActivity {
                                     break;
                             }
                             x = dis.read();
+                            System.out.println(x);
                         } while (x != ACTION_ANDROID_END && x != -1);
                         db.setRevToken(dis.readLong()); 
                         success = true;

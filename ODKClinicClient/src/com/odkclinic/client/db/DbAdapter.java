@@ -388,10 +388,14 @@ public class DbAdapter {
 		Cursor cursor = mDb.query(table, null, where, null, null, null, null);
 		boolean isEmpty = cursor.getCount() != 0;
 		cursor.close();
+		try {
 		if (isEmpty) {
 			mDb.update(table, values, where, null);
 		} else
 			mDb.insert(table, where, values);
+		} catch (SQLException e) {
+		    e.printStackTrace();
+		}
 	}
 
 	public void insertEncounterBundle(EncounterBundle eb) {
@@ -471,8 +475,9 @@ public class DbAdapter {
 	public void insertPatientProgramBundle(PatientProgramBundle prb) {
 		for (PatientProgram pr : prb.getBundle()) {
 			String table = PatientProgramTable.TABLE_NAME;
-			String where = PatientProgramTable.ID.getName() + "="
-					+ pr.getProgramId();
+			String where = PatientProgramTable.PROGRAM_ID.getName() + "="
+					+ pr.getProgramId() + " AND " + PatientProgramTable.PATIENT_ID.getName() + "="
+                    + pr.getPatientId();
 			ContentValues values = getValues(pr);
 			insertOrUpdate(table, where, values);
 		}
@@ -480,7 +485,9 @@ public class DbAdapter {
 
 	public ContentValues getValues(PatientProgram ppr) {
 		ContentValues values = new ContentValues();
-		values.put(PatientProgramTable.ID.getName(), ppr.getPatientProgramId());
+		if (ppr.getPatientProgramId() != null)
+		    values.put(PatientProgramTable.ID.getName(), ppr.getPatientProgramId());
+		
 		values
 				.put(PatientProgramTable.PATIENT_ID.getName(), ppr
 						.getPatientId());
