@@ -243,13 +243,12 @@ public class ODKClinicServer
                                 }
                                 if (!success) {
                                     responseStatus = ODKClinicConstants.STATUS_ERROR;
+                                    log.error("Failedfailed sending bundles to client.");
                                     break;
                                 }
                             }
-                            if (success) {
-                                dos.write(ODKClinicConstants.ACTION_ANDROID_END);
-                                dos.writeLong(dl.getLargestRevisionToken());
-                            }
+                            dos.write(ODKClinicConstants.ACTION_ANDROID_END);
+                            dos.writeLong(dl.getLargestRevisionToken());
                         } else
                         {
                             responseStatus = ODKClinicConstants.STATUS_ERROR;
@@ -370,7 +369,7 @@ public class ODKClinicServer
     }
     
     private boolean downloadPatientPrograms(DataOutputStream dos,String serializerKey) {
-        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PROGRAMS, 0);
+        return dl.downloadBundle(dos, ODKClinicConstants.ACTION_ANDROID_DOWNLOAD_PATIENTPROGRAMS, 0);
     }
     
     private boolean downloadProgramWorkflows(DataOutputStream dos, String serializerKey) {
