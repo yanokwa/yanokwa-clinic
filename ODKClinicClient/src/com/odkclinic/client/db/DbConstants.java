@@ -194,7 +194,7 @@ public class DbConstants {
 				PatientTable.ID.getName(), CohortMemberTable.PATIENT_ID.getName(), CohortTable.ID.getName(), CohortMemberTable.COHORT_ID.getName(), PatientTable.ID.getName(), UpdatesTable.PATIENT_ID.getName(), PatientTable.ID.getName(),
 				PatientTable.ID.getName(), UpdatesTable.DATE.getName());
 
-    
+    /*
     public static final String CONCEPT_HISTORY_QUERY = 
     	String.format(
 				" SELECT %s, %s, %s, %s, %s, %s " +
@@ -212,7 +212,23 @@ public class DbConstants {
 				ConceptTable.ID.getName(), ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ObservationView.CONCEPT_ID.getName(), ConceptTable.ID.getName(), 
 				ConceptTable.ID.getName(), PatientTable.ID.getName(), ObservationView.PATIENT_ID.getName(), PatientTable.ID.getName(),
 				
-				ObservationView.DATETIME.getName());
+				ObservationView.DATETIME.getName()); */
+    
+    public static final String CONCEPT_HISTORY_QUERY = 
+        String.format(
+                " SELECT %s, %s, %s, %s, %s, %s " +
+                " FROM %s, %s, %s, %s " +
+                " WHERE %s = %s AND %s = %s AND %s = ? AND %s = ? AND %s = %s " +
+                " ORDER BY %s",
+                ConceptNameTable.NAME.getName(), ObservationView.DATETIME.getName(), ObservationView.NUMERIC.getName(), ObservationView.TEXT.getName(), 
+                ObservationView.DATETIME.getName(), ObservationView.BOOLEAN.getName(),
+                
+                PatientTable.TABLE_NAME, ConceptTable.TABLE_NAME, ConceptNameTable.TABLE_NAME, ObservationView.TABLE_NAME, 
+                
+                ConceptTable.ID.getName(), ConceptNameTable.CONCEPT_ID.getName(), ObservationView.CONCEPT_ID.getName(), ConceptTable.ID.getName(), 
+                ConceptTable.ID.getName(), PatientTable.ID.getName(), ObservationView.PATIENT_ID.getName(), PatientTable.ID.getName(),
+                
+                ObservationView.DATETIME.getName());
     
     //TODO add more details
     /* 
