@@ -22,10 +22,10 @@ package com.odkclinic.client.db.tables;
  */
 public enum ProgramWorkflowTable {
 	ID("programworkflow_id", "INTEGER PRIMARY KEY"),
-	CONCEPT_ID("programworkflow_patient_id", ConceptTable.FKEY_RELATIONSHIP),
+	CONCEPT_ID("programworkflow_concept_id", ConceptTable.FKEY_RELATIONSHIP),
 	PROGRAM_ID("ProgramWorkflow_program_id", ProgramTable.FKEY_RELATIONSHIP);
 	
-	public static String TABLE_NAME = "patient_program";
+	public static String TABLE_NAME = "program_workflow";
 	public static String TABLE_ACRONYM = "ppr"; //for queries
 	
 	private String COLUMN_NAME;

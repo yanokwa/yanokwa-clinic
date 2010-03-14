@@ -72,7 +72,10 @@ public enum OpenMRS {
 		    UpdatesTable.COLUMNS_TYPE),
     Settings(SettingsTable.TABLE_NAME,
              SettingsTable.COLUMNS,
-             SettingsTable.COLUMNS_TYPE);
+             SettingsTable.COLUMNS_TYPE),
+     ProgramWorkflow(ProgramWorkflowTable.TABLE_NAME,
+                     ProgramWorkflowTable.COLUMNS,
+                     ProgramWorkflowTable.COLUMNS_TYPE);
 	
 	public static final String DATABASE_NAME = "openmrsdata";
 	public static final int DATABASE_VERSION = 4;
