@@ -126,7 +126,8 @@ public class AndroidDownloadManager {
        
         try {
             dos.writeByte(action);
-            bundle.write(dos);           
+            bundle.write(dos);     
+            System.out.println(action + " " + bundle.getBundle().size());
         } catch (IOException e) {
             log.error("odkclinic download failed", e);
             return false;
@@ -417,7 +418,6 @@ public class AndroidDownloadManager {
     	    mConceptDTs.add(cService.getConceptDatatype(3));
     	    mConceptDTs.add(cService.getConceptDatatype(10));
 	    }
-	    System.out.println("Size of DTs: " + mConceptDTs.size());
 	    return mConceptDTs;
 	}
 	
@@ -427,10 +427,17 @@ public class AndroidDownloadManager {
         Cohort cohort = Context.getCohortService().getCohort(1);
         List<Program> programs = pService.getAllPrograms(false);
         Set<org.openmrs.Concept> concepts = new HashSet<org.openmrs.Concept>();
+        
         for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
-           org.openmrs.Concept concept = patientProgram.getProgram().getConcept();
-           if (getConceptDTs().contains(concept.getDatatype())) 
-               concepts.add(concept);
+            org.openmrs.Program program = patientProgram.getProgram();
+            org.openmrs.Concept concept = program.getConcept();
+            if (getConceptDTs().contains(concept.getDatatype())) 
+                concepts.add(concept);
+            for (ProgramWorkflow programWorkflow: program.getAllWorkflows()) {
+                org.openmrs.Concept ppwConcept = programWorkflow.getConcept();
+                if (getConceptDTs().contains(ppwConcept.getDatatype())) 
+                    concepts.add(ppwConcept);
+            }
         }
 	    for (org.openmrs.Concept concept: concepts) {
 	        com.odkclinic.model.Concept outConcept = new Concept();
@@ -471,11 +478,19 @@ public class AndroidDownloadManager {
         Cohort cohort = Context.getCohortService().getCohort(1);
         List<Program> programs = pService.getAllPrograms(false);
         Set<org.openmrs.Concept> concepts = new HashSet<org.openmrs.Concept>();
+        
         for (org.openmrs.PatientProgram patientProgram: pService.getPatientPrograms(cohort, programs)) {
-            org.openmrs.Concept concept = patientProgram.getProgram().getConcept();
+            org.openmrs.Program program = patientProgram.getProgram();
+            org.openmrs.Concept concept = program.getConcept();
             if (getConceptDTs().contains(concept.getDatatype())) 
                 concepts.add(concept);
+            for (ProgramWorkflow programWorkflow: program.getAllWorkflows()) {
+                org.openmrs.Concept ppwConcept = programWorkflow.getConcept();
+                if (getConceptDTs().contains(ppwConcept.getDatatype())) 
+                    concepts.add(ppwConcept);
+            }
         }
+        
         for (org.openmrs.Concept concept: concepts) {
             org.openmrs.ConceptName conceptName = concept.getName();
             com.odkclinic.model.ConceptName outCN = new ConceptName();
@@ -543,7 +558,8 @@ public class AndroidDownloadManager {
 	        outPPR.setPatientProgramId(patientProgram.getPatientProgramId());
 	        outPPR.setProgramId(patientProgram.getProgram().getProgramId());
 	        bundle.add(outPPR);
-	    }
+	        
+	    }   
 	    return bundle;
 	}
 	
