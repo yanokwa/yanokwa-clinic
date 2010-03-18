@@ -5,9 +5,11 @@ import java.util.Date;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.odkclinic.db.RevisionTokenDAO;
+import com.odkclinic.server.ODKClinicConstants;
 
 public class HibernateRevisionTokenDAO implements RevisionTokenDAO
 {
@@ -32,25 +34,65 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
             date = (Date) sessionFactory.getCurrentSession()
                     .createSQLQuery(sql).uniqueResult();
             if (date == null) {
-                sql = "select date_created from encounter where encounter_id = " + id;
+                if (table.equals(ODKClinicConstants.OBS_TABLE))
+                    sql = "select date_created from obs where obs_id = " + id;
+                else if (table.equals(ODKClinicConstants.ENCOUNTER_TABLE))
+                    sql = "select date_created from encounter where encounter_id = " + id;
                 date = (Date) sessionFactory.getCurrentSession().createSQLQuery(sql).uniqueResult();
                 if (date != null) {
                     putRevisionToken(table, id, date);
                     return date;
                 } else 
-                    log.error("Date is null.");
+                    log.error("Date is null. For id: " + id);
             }
         } catch (Exception e)
         {
             log.error("query for rev token fail", e);
         }
-
+        if (date != null)
+            log.debug("Getting token: " + date.toString());
         return date;
     }
     
     private void putRevisionToken(String table, int id, Date date) {
         String sql = "INSERT INTO "+ table +"(id, revision_token) VALUES ("+ id +", " + date.getTime() + ");";
-        sessionFactory.getCurrentSession().createSQLQuery(sql);
+        sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
+        sessionFactory.getCurrentSession().flush();
+        
+    }
+    
+    public Long getUserRevisionToken(String user) {
+        String sql = "select revision_token from odkclinic_user where id = '" + user + "'";
+        log.debug("querying for revision token");
+        Long date = null;
+        try
+        {
+            date = (Long) sessionFactory.getCurrentSession().createSQLQuery(sql).uniqueResult();
+        } catch (Exception e)
+        {
+            log.error("query for rev token fail", e);
+        }
+        if (date != null)
+            log.debug("Getting token: " + date.toString());
+        return date != null ? date : null;
+    }
+    
+    public void updateUserRevisionToken(String user) {
+        try
+        {
+            log.error("Trying to insert value in database.");
+            String sql = "INSERT INTO odkclinic_user(id, revision_token) VALUES ('"+ user +"' , " + System.currentTimeMillis() + ");";
+            Session s = sessionFactory.getCurrentSession();
+            s.createSQLQuery(sql).executeUpdate();
+            s.flush();
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+            log.error("Trying to update value in database.");
+            String sql = "UPDATE odkclinic_user SET revision_token = " + System.currentTimeMillis() + " WHERE id='"+ user +"';";
+            sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
+            sessionFactory.getCurrentSession().flush();
+        }
     }
     
     @Override

@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.omg.CORBA.REBIND;
 import org.openmrs.Cohort;
 import org.openmrs.EncounterType;
 import org.openmrs.Location;
@@ -183,15 +184,19 @@ public class AndroidDownloadManager {
 	 * @param revToken
 	 * @return true if successful, false otherwise
 	 */
-	public boolean commitEncounters(EncounterBundle eb, long revToken) {
+	public boolean commitEncounters(EncounterBundle eb, String user, long revToken) {
 	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
 	    EncounterService encounterService = Context.getEncounterService();
         UserService userService = Context.getUserService();
+        
+        Long stateToken = revService.getUserRevisionToken(user);
+        
         boolean success = true;
         List<Encounter> encounters = eb.getBundle();
+        
         for (Encounter enc: encounters) {
-            Date stateToken = revService.getRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE, enc.getEncounterId());
-            if (stateToken == null || revToken > stateToken.getTime()) {
+            if (stateToken == null || // user hasnt synced with us before
+                revToken > stateToken.longValue()) {
                 User prov = userService.getUser(enc.getProviderId()); //provider and creator from phone are the same
                 org.openmrs.Encounter inEnc = new org.openmrs.Encounter();
                 inEnc.setEncounterId(0);
@@ -263,22 +268,23 @@ public class AndroidDownloadManager {
 	 * @return true if successful, false otherwise
 	 */
 	@SuppressWarnings("deprecation")
-    public boolean commitObservations(ObservationBundle ob, long revToken) {
+    public boolean commitObservations(ObservationBundle ob, String user, long revToken) {
 	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
         ObsService obsService = Context.getObsService();
         EncounterService encounterService = Context.getEncounterService();
         ConceptService conceptService = Context.getConceptService();
         PatientService patientService = Context.getPatientService();
-        boolean success = true;
+        boolean success = false;
         
         Location loc = Context.getLocationService().getLocation(1); //hard-coded unknown location
         
+        Long stateToken = revService.getUserRevisionToken(user);
+        
         List<Observation> observations = ob.getBundle();
         for (Observation obs : observations) {
-            Date stateToken = revService.getRevisionToken(ODKClinicConstants.OBS_TABLE, obs.getObsId());
-                if (stateToken == null || revToken > stateToken.getTime()) {
+            if (stateToken == null || // user hasnt synced with us before
+                    revToken > stateToken.longValue()) {
                     org.openmrs.Obs inObs = new org.openmrs.Obs();
-                    //inObs.setObsId(0);
                     inObs.setEncounter(encounterService.getEncounter(obs.getEncounterId()));
                     inObs.setConcept(conceptService.getConcept(obs.getConceptId()));
                     inObs.setObsDatetime(obs.getDateCreated() == null ? new Date() : obs.getDateCreated());
@@ -291,11 +297,13 @@ public class AndroidDownloadManager {
                 try {
                     obsService.createObs(inObs);
                     //obsService.saveObs(inObs, "Changed/added by android phone");
+                    success = true;
                 } catch (Exception e) {
                     log.error("Failed committing observation.", e);
                     success = false;
                     break;
                 }
+                
             }
         }
 	    return success;
@@ -338,12 +346,11 @@ public class AndroidDownloadManager {
                 outObs.setPatientId(inObs.getPatient().getPatientId());
                 outObs.setCreator(inObs.getCreator().getUserId());
                 outObs.setConceptId(inObs.getConcept().getConceptId());
-                outObs.setEncounterId(inObs.getEncounter().getEncounterId());
-                outObs.setConceptId(inObs.getConcept().getConceptId());
+                if (inObs.getEncounter() != null)
+                    outObs.setEncounterId(inObs.getEncounter().getEncounterId());
                 outObs.setText(inObs.getValueText());
                 outObs.setDate(inObs.getObsDatetime());
                 outObs.setValue(inObs.getValueNumeric());
-                // outObs.setUinObs.getCreator().getUserId();
                 outObs.setDateCreated(inObs.getDateCreated());
 
                 bundle.add(outObs);
@@ -564,10 +571,12 @@ public class AndroidDownloadManager {
 	}
 	
 	
-	public long getLargestRevisionToken() {
+	public long getUserRevisionToken(){//String user) {
 	    ODKClinicService revService = (ODKClinicService) Context.getService(ODKClinicService.class);
 	    long encToken = revService.getLargestRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE);
 	    long obsToken = revService.getLargestRevisionToken(ODKClinicConstants.OBS_TABLE);
 	    return encToken >= obsToken ? encToken : obsToken;
+	    //ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+	    //return revService.getUserRevisionToken(user).longValue();
 	}
 }

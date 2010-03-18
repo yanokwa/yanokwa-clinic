@@ -28,4 +28,16 @@ public class ODKClinicServiceImpl implements ODKClinicService {
 	    return tokenDAO.getLargestRevisionToken(table);
 	}
 
+    @Override
+    public Long getUserRevisionToken(String user)
+    {
+        return tokenDAO.getUserRevisionToken(user);
+    }
+
+    @Override
+    public void updateUserRevisionToken(String user)
+    {
+       tokenDAO.updateUserRevisionToken(user);
+    }
+
 }

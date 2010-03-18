@@ -15,4 +15,8 @@ public interface ODKClinicService
     public Date getRevisionToken(String table, int id);
 
     public long getLargestRevisionToken(String table);
+    
+    public Long getUserRevisionToken(String user);
+    
+    public void updateUserRevisionToken(String user);
 }

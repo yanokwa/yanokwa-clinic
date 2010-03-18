@@ -163,6 +163,7 @@ public class ODKClinicServer
                         ByteArrayOutputStream data = new ByteArrayOutputStream();
                         multipartStream.readBodyData(data);
                         DataInputStream dis = new DataInputStream(new ByteArrayInputStream(data.toByteArray()));
+                        System.out.println(current);
                         switch (current)
                         {
                             case UPLOAD_ENCOUNTER:
@@ -196,7 +197,7 @@ public class ODKClinicServer
                     if (responseStatus == ODKClinicConstants.STATUS_SUCCESS)
                     {
                         // try to commit changes to server database first
-                        if (commitChanges(map, revToken)
+                        if (commitChanges(map, user, revToken)
                                 && current == Headers.DOWNLOAD_ACTIONS)
                         {
                             String[] actions = getString(multipartStream)
@@ -248,7 +249,7 @@ public class ODKClinicServer
                                 }
                             }
                             dos.write(ODKClinicConstants.ACTION_ANDROID_END);
-                            dos.writeLong(dl.getLargestRevisionToken());
+                            dos.writeLong(dl.getUserRevisionToken());
                         } else
                         {
                             responseStatus = ODKClinicConstants.STATUS_ERROR;
@@ -283,29 +284,40 @@ public class ODKClinicServer
         }
     }
 
-    private boolean commitChanges(Map<UploadType, Bundle<?>> map, long revToken)
+    private boolean commitChanges(Map<UploadType, Bundle<?>> map, String user, long revToken)
     {
+        boolean success = false;
+        if (map.size() == 0)
+            success = true;
         for (Map.Entry<UploadType, Bundle<?>> entry : map.entrySet())
         {
+            log.debug("Commiting to the database: " + entry.getKey().toString());
+            
             switch (entry.getKey())
             {
                 case Encounters:
-                    if (!dl
+                    if (dl
                             .commitEncounters((EncounterBundle) entry
-                                    .getValue(), revToken))
-                        return false;
+                                    .getValue(), user, revToken))
+                        success = true;
                     break;
                 case Observations:
-                    if (!dl
+                    if (dl
                             .commitObservations((ObservationBundle) entry
-                                    .getValue(), revToken))
-                        return false;
+                                    .getValue(), user, revToken))
+                        success = true;
                     break;
-                default:
-                    return false;
             }
+           
         }
-        return true;
+        if (success && map.size() > 0) { // update user revtoken table
+            log.error("Updating revision for user: " + user);
+            ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+            revService.updateUserRevisionToken(user);
+        } else {
+            log.error("failed to commit to database");
+        }
+        return success;
     }
     private String parseHeader(String value) {
         String headers = value.split(";")[1];
