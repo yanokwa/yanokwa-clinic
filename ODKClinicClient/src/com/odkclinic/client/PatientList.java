@@ -361,10 +361,27 @@ public class PatientList extends ExpandableListActivity {
                 reqEntity.addPart("PASS", new StringBody(PASS));
                 reqEntity.addPart("SKEY", new StringBody(SKEY));
                 reqEntity.addPart("REVTOKEN", new StringBody(db.getRevToken()+""));
-                byte[] ebBytes = eb.getBytes();
-                reqEntity.addPart("UPLOAD_ENCOUNTER", new InputStreamKnownSizeBody(new ByteArrayInputStream(ebBytes), ebBytes.length, "img/jpeg", "ff"));
-                byte[] obBytes = ob.getBytes();
-                reqEntity.addPart("UPLOAD_OBSERVATION", new InputStreamKnownSizeBody(new ByteArrayInputStream(obBytes), obBytes.length, "img/jpeg", "ff"));
+                if (eb.getBundle().size() > 0) {
+                    byte[] ebBytes = eb.getBytes();
+                    Log.d(LOG_TAG, "Sending bundle of size " + ebBytes.length);
+                    reqEntity.addPart("UPLOAD_ENCOUNTER", 
+                                      new InputStreamKnownSizeBody(
+                                              new ByteArrayInputStream(ebBytes), 
+                                              ebBytes.length, 
+                                              "img/jpeg", 
+                                              "ff"));
+                }
+                
+                if (ob.getBundle().size() > 0) {
+                    byte[] obBytes = ob.getBytes();
+                    Log.d(LOG_TAG, "Sending bundle of size " + obBytes.length);
+                    reqEntity.addPart("UPLOAD_OBSERVATION", 
+                                      new InputStreamKnownSizeBody(
+                                              new ByteArrayInputStream(obBytes), 
+                                              obBytes.length, 
+                                              "img/jpeg", 
+                                              "ff"));
+                }
                 reqEntity.addPart("DOWNLOAD_ACTIONS", new StringBody("DOWNLOAD_PROGRAM;" +
                 		                                             "DOWNLOAD_PATIENT;" +
                 		                                             "DOWNLOAD_ENCOUNTER;" +
@@ -446,8 +463,7 @@ public class PatientList extends ExpandableListActivity {
                         db.setRevToken(dis.readLong()); 
                         success = true;
                     } catch(EOFException e) {
-                        Log.d(LOG_TAG + "/SendDataTask", "Error in Stream");
-                        e.printStackTrace();
+                        Log.d(LOG_TAG + "/SendDataTask", "Error in Stream: " + e.getMessage());
                     } finally {
                         dis.close();
                     }
