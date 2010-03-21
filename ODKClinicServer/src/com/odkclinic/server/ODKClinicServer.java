@@ -249,7 +249,7 @@ public class ODKClinicServer
                                 }
                             }
                             dos.write(ODKClinicConstants.ACTION_ANDROID_END);
-                            dos.writeLong(dl.getUserRevisionToken());
+                            dos.writeLong(dl.getUserRevisionToken(user));
                         } else
                         {
                             responseStatus = ODKClinicConstants.STATUS_ERROR;

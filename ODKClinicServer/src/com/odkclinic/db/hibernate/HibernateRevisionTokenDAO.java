@@ -73,35 +73,20 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
     public Long getUserRevisionToken(String user) {
         String sql = "select revision_token from odkclinic_user where id = '" + user + "'";
         log.debug("querying for revision token");
-        Long date = null;
+        Date date = null;
         try
         {
-            date = (Long) sessionFactory.getCurrentSession().createSQLQuery(sql).uniqueResult();
+            date = (Date) sessionFactory.getCurrentSession().createSQLQuery(sql).uniqueResult();
         } catch (Exception e)
         {
             log.error("query for rev token fail", e);
         }
         if (date != null)
             log.debug("Getting token: " + date.toString());
-        return date != null ? date : null;
+        return date != null ? date.getTime() : null;
     }
     
     public void updateUserRevisionToken(String user) {
-        /*try
-        {
-            log.error("Trying to insert value in database.");
-            String sql = "INSERT INTO odkclinic_user(id, revision_token) VALUES ('"+ user +"' , " + System.currentTimeMillis() + ");";
-            Session s = sessionFactory.getCurrentSession();
-            s.createSQLQuery(sql).executeUpdate();
-            s.flush();
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-            log.error("Trying to update value in database.");
-            String sql = "UPDATE odkclinic_user SET revision_token = " + System.currentTimeMillis() + " WHERE id='"+ user +"';";
-            sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
-            sessionFactory.getCurrentSession().flush();
-        }*/
         Date newDate = new Date();
         Session s = sessionFactory.getCurrentSession();
         log.info(String.format("Updating revision token of user %s to %d", user, newDate.getTime()));

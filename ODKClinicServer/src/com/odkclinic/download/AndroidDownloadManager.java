@@ -565,18 +565,13 @@ public class AndroidDownloadManager {
 	        outPPR.setPatientProgramId(patientProgram.getPatientProgramId());
 	        outPPR.setProgramId(patientProgram.getProgram().getProgramId());
 	        bundle.add(outPPR);
-	        
 	    }   
 	    return bundle;
 	}
 	
 	
-	public long getUserRevisionToken(){//String user) {
-	    ODKClinicService revService = (ODKClinicService) Context.getService(ODKClinicService.class);
-	    long encToken = revService.getLargestRevisionToken(ODKClinicConstants.ENCOUNTER_TABLE);
-	    long obsToken = revService.getLargestRevisionToken(ODKClinicConstants.OBS_TABLE);
-	    return encToken >= obsToken ? encToken : obsToken;
-	    //ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
-	    //return revService.getUserRevisionToken(user).longValue();
+	public long getUserRevisionToken(String user) {
+	    ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
+	    return revService.getUserRevisionToken(user).longValue();
 	}
 }
