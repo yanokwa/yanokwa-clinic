@@ -311,11 +311,13 @@ public class ODKClinicServer
            
         }
         if (success && map.size() > 0) { // update user revtoken table
-            log.error("Updating revision for user: " + user);
+            log.info("Updating revision for user: " + user);
             ODKClinicService revService = (ODKClinicService)Context.getService(ODKClinicService.class);
             revService.updateUserRevisionToken(user);
-        } else {
+        } else if (!success && map.size() > 0) {
             log.error("failed to commit to database");
+        } else {
+            log.info("No updates from client.");
         }
         return success;
     }

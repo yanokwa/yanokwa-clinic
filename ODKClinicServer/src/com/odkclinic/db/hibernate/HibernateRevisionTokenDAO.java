@@ -9,6 +9,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.odkclinic.db.RevisionTokenDAO;
+import com.odkclinic.db.model.EncounterRevisionToken;
+import com.odkclinic.db.model.ObsRevisionToken;
+import com.odkclinic.db.model.UserRevisionToken;
 import com.odkclinic.server.ODKClinicConstants;
 
 public class HibernateRevisionTokenDAO implements RevisionTokenDAO
@@ -55,10 +58,16 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
     }
     
     private void putRevisionToken(String table, int id, Date date) {
-        String sql = "INSERT INTO "+ table +"(id, revision_token) VALUES ("+ id +", " + date.getTime() + ");";
-        sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
-        sessionFactory.getCurrentSession().flush();
-        
+       // String sql = "INSERT INTO "+ table +"(id, revision_token) VALUES ("+ id +", " + date.getTime() + ");";
+        //sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
+       // sessionFactory.getCurrentSession().flush();
+        Session s = sessionFactory.getCurrentSession();
+        if (table.equals(ODKClinicConstants.ENCOUNTER_TABLE)) {
+            s.saveOrUpdate(new EncounterRevisionToken(id, date));
+        } else if (table.equals(ODKClinicConstants.OBS_TABLE)) {
+            s.saveOrUpdate(new ObsRevisionToken(id, date));
+        }
+        s.flush();
     }
     
     public Long getUserRevisionToken(String user) {
@@ -78,7 +87,7 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
     }
     
     public void updateUserRevisionToken(String user) {
-        try
+        /*try
         {
             log.error("Trying to insert value in database.");
             String sql = "INSERT INTO odkclinic_user(id, revision_token) VALUES ('"+ user +"' , " + System.currentTimeMillis() + ");";
@@ -92,7 +101,12 @@ public class HibernateRevisionTokenDAO implements RevisionTokenDAO
             String sql = "UPDATE odkclinic_user SET revision_token = " + System.currentTimeMillis() + " WHERE id='"+ user +"';";
             sessionFactory.getCurrentSession().createSQLQuery(sql).executeUpdate();
             sessionFactory.getCurrentSession().flush();
-        }
+        }*/
+        Date newDate = new Date();
+        Session s = sessionFactory.getCurrentSession();
+        log.info(String.format("Updating revision token of user %s to %d", user, newDate.getTime()));
+        s.saveOrUpdate(new UserRevisionToken(user, newDate));
+        s.flush();
     }
     
     @Override

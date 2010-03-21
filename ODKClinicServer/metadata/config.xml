@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+ <!DOCTYPE module PUBLIC "-//OpenMRS//DTD OpenMRS Config 1.0//EN" 
+                         "http://resources.openmrs.org/doctype/config-1.2.dtd">
 
 
 <module configVersion="1.2">
@@ -20,5 +22,11 @@
 		<servlet-name>ODKClinicServer</servlet-name>
 	    <servlet-class>@MODULE_PACKAGE@.web.AndroidServlet</servlet-class>
 	</servlet>
+	
+	<mappingFiles>
+	   odkclinic_encounter.hbm.xml
+	   odkclinic_obs.hbm.xml
+	   odkclinic_user.hbm.xml
+	</mappingFiles>
 	
 </module>
