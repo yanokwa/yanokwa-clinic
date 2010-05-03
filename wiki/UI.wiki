@@ -1,0 +1,34 @@
+#labels Phase-Design,Featured
+= Introduction =
+
+Materials relating to the design of the UI for ODK Clinic
+
+= Design =
+== Tasks ==
+  # Get a group of patients from openMRS and move them to andriod application
+  # Find a patient in andriod application and add new encounter
+  # Sync encounter with patient back to openMRS and remove unessesary patients
+
+== Personas ==
+
+
+= Versions =
+== Version 0.2 ==
+[http://odk-clinic.googlecode.com/files/ODKclinicUI-0.2.png paper design] - completed as of (18 Nov '09)
+
+===Feedback Summary===
+
+== Version 0.1 ==
+paper design - completed as of (8 Nov '09)
+
+===Feedback Summary===
+
+  * v0.1 designed for remote usage according to feedback/specs from Jul... (practitioner in the field)
+  * Yaw... (project owner) has indicated this side of the project is more in-facility which needs to be reflected in v0.2
+
+highlights of changes in store for v0.2:
+
+  * add a separate interface for managing and synchronizing patients
+  * stick with single click interaction instead of a click swipe
+  * add historical display of 10 factors in patient summary
+  * add more details in patient & cohort list
