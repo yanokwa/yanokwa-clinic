@@ -1,0 +1,12 @@
+
+= Initial 10/22/09 =
+
+* Requirements Doc ver. 0.1 up
+
+* Must meet up later to clarify requirements doc.
+
+* Get more clarification on OpenMRS data input/output
+
+* Get dev environments working (OpenMRS, Android, probably AppEngine for server backend/backup)
+
+* Must start Initial Design Specification Doc

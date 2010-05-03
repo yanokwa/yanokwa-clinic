@@ -1,0 +1,21 @@
+#labels Featured
+= Introduction =
+
+Features for each milestone
+
+
+== After Demo ==
+  * zoom in on graph
+  * proper UI data backing classes (instead of massive switches)
+  * lots more datatypes support (UI)
+  * figure out why in the world the javascript is so slow
+  * patient list -> show visited or not
+  * most recent value patient summary (height)
+  * not to display graph if no data
+  * list view of historical data
+  * Networking
+  * Interconnection with the ODKClinic Xforms project.
+  * Database Rewrite
+  * Performance Testing and Tweaking
+  * Tweak UI for better usability
+  
